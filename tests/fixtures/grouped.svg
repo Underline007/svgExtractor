@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500" width="1000" height="500">
+<rect class="bg" width="1000" height="500" fill="#fff"/>
+<g id="Layer_1">
+ <g id="arch"><path fill="#c96" d="M 50 450 L 50 150 Q 50 50 200 50 Q 350 50 350 150 L 350 450 L 320 450 L 320 160 Q 320 80 200 80 Q 80 80 80 160 L 80 450 Z"/><circle cx="100" cy="120" r="40" fill="pink"/></g>
+ <g id="couple" transform="translate(340 60)"><rect x="0" y="0" width="200" height="380" fill="#333"/><ellipse cx="100" cy="40" rx="30" ry="40" fill="#fc9"/></g>
+ <g id="rings"><circle cx="700" cy="300" r="80" fill="none" stroke="#000" stroke-width="10"/><circle cx="800" cy="300" r="80" fill="none" stroke="#000" stroke-width="10"/><path d="M 720 120 l 20 30 l 20 -30 z" fill="#000"/></g>
+</g></svg>

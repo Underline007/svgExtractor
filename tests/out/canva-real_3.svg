@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="413.333333" zoomAndPan="magnify" viewBox="1070 26 310 319" height="425.333333" preserveAspectRatio="xMidYMid meet" version="1.0">
+<defs>
+<clipPath id="ch"><path d="M 1188 26 L 1241 26 L 1241 79 L 1188 79 Z" clip-rule="nonzero"/></clipPath>
+<clipPath id="cr"><path d="M 1065.95 91 L 1383.2 91 L 1383.2 350 L 1065.95 350 Z" clip-rule="nonzero"/></clipPath>
+</defs>
+<g clip-path="url(#ch)"><path fill="#000000" d="M 1214.5 79 L 1188 45 L 1201 26 L 1214.5 37 L 1228 26 L 1241 45 Z"/></g>
+<path fill="#000000" d="M 1300 120 L 1280 90 L 1290 62 L 1300 72 L 1312 62 L 1322 90 Z"/>
+<g clip-path="url(#cr)"><path fill="#111111" d="M 1070 260 A 85 85 0 1 0 1240 260 A 85 85 0 1 0 1070 260 Z M 1090 260 A 65 65 0 1 0 1220 260 A 65 65 0 1 0 1090 260 Z M 1210 250 A 85 85 0 1 0 1380 250 A 85 85 0 1 0 1210 250 Z M 1230 250 A 65 65 0 1 0 1360 250 A 65 65 0 1 0 1230 250 Z M 1130 140 L 1150 100 L 1190 100 L 1210 140 L 1170 180 Z" fill-rule="evenodd"/></g>
+</svg>

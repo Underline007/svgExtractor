@@ -1,0 +1,427 @@
+{
+ "canva-like.svg": [
+  {
+   "box": {
+    "x0": 18,
+    "y0": 38,
+    "x1": 756,
+    "y1": 752
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 1796,
+   "images": 2,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1392000,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 771,
+    "y0": 55,
+    "x1": 1180,
+    "y1": 555
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 13420,
+   "images": 1,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1759200,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 1199,
+    "y0": 68,
+    "x1": 1546,
+    "y1": 421
+   },
+   "excluded": false,
+   "units": 5,
+   "bytes": 1581,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1464000,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 0,
+    "y0": 0,
+    "x1": 1546,
+    "y1": 760
+   },
+   "excluded": true,
+   "units": 1,
+   "bytes": 506,
+   "images": 0,
+   "diff": null
+  },
+  {
+   "box": {
+    "x0": 0,
+    "y0": 0,
+    "x1": 1546,
+    "y1": 760
+   },
+   "excluded": true,
+   "units": 1,
+   "bytes": 506,
+   "images": 0,
+   "diff": null
+  }
+ ],
+ "canva-real.svg": [
+  {
+   "box": {
+    "x0": 0,
+    "y0": 0,
+    "x1": 668.16,
+    "y1": 648
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 1482,
+   "images": 2,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1396800,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 682.42,
+    "y0": 15.37,
+    "x1": 1051,
+    "y1": 468
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 13258,
+   "images": 1,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1768800,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 1070,
+    "y0": 26,
+    "x1": 1380,
+    "y1": 345
+   },
+   "excluded": false,
+   "units": 3,
+   "bytes": 1093,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1480800,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 0,
+    "y0": 0,
+    "x1": 1440,
+    "y1": 810
+   },
+   "excluded": true,
+   "units": 1,
+   "bytes": 360,
+   "images": 0,
+   "diff": null
+  },
+  {
+   "box": {
+    "x0": 0,
+    "y0": 0,
+    "x1": 1440,
+    "y1": 810
+   },
+   "excluded": true,
+   "units": 1,
+   "bytes": 360,
+   "images": 0,
+   "diff": null
+  }
+ ],
+ "flat.svg": [
+  {
+   "box": {
+    "x0": 50,
+    "y0": 50,
+    "x1": 350,
+    "y1": 450
+   },
+   "excluded": false,
+   "units": 2,
+   "bytes": 461,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1920000,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 380,
+    "y0": 60,
+    "x1": 580,
+    "y1": 440
+   },
+   "excluded": false,
+   "units": 2,
+   "bytes": 388,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 2736000,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 615,
+    "y0": 215,
+    "x1": 885,
+    "y1": 385
+   },
+   "excluded": false,
+   "units": 2,
+   "bytes": 366,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 907200,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 720,
+    "y0": 120,
+    "x1": 760,
+    "y1": 150
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 315,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1080000,
+    "mean": 0
+   }
+  }
+ ],
+ "grouped.svg": [
+  {
+   "box": {
+    "x0": 50,
+    "y0": 50,
+    "x1": 350,
+    "y1": 450
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 383,
+   "images": 0,
+   "diff": null
+  },
+  {
+   "box": {
+    "x0": 340,
+    "y0": 60,
+    "x1": 540,
+    "y1": 440
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 336,
+   "images": 0,
+   "diff": null
+  },
+  {
+   "box": {
+    "x0": 615,
+    "y0": 120,
+    "x1": 885,
+    "y1": 385
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 402,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1413600,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 0,
+    "y0": 0,
+    "x1": 1000,
+    "y1": 500
+   },
+   "excluded": true,
+   "units": 1,
+   "bytes": 208,
+   "images": 0,
+   "diff": null
+  }
+ ],
+ "tricky.svg": [
+  {
+   "box": {
+    "x0": 20,
+    "y0": 20,
+    "x1": 220,
+    "y1": 220
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 519,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1440000,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 260,
+    "y0": 40,
+    "x1": 380,
+    "y1": 160
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 422,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1440000,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 441.699,
+    "y0": 59.019,
+    "x1": 558.301,
+    "y1": 160.981
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 325,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1260000,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 652.564,
+    "y0": 62.564,
+    "x1": 747.436,
+    "y1": 157.436
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 323,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1440000,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 42.368,
+    "y0": 258.527,
+    "x1": 107.261,
+    "y1": 280.347
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 314,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 484800,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 293.6,
+    "y0": 195.2,
+    "x1": 426.4,
+    "y1": 293.334
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 344,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1063200,
+    "mean": 0
+   }
+  },
+  {
+   "box": {
+    "x0": 780,
+    "y0": 200,
+    "x1": 855.156,
+    "y1": 255.189
+   },
+   "excluded": false,
+   "units": 1,
+   "bytes": 456,
+   "images": 0,
+   "diff": {
+    "bad": 0,
+    "maxd": 0,
+    "total": 1058400,
+    "mean": 0
+   }
+  }
+ ]
+}

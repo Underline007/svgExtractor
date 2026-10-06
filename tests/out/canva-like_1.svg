@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="983.84088" zoomAndPan="magnify" viewBox="18 38 738 714" height="951.686842" preserveAspectRatio="xMidYMid meet" version="1.0">
+<defs>
+<filter x="0%" y="0%" width="100%" height="100%" id="f1"><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0" color-interpolation-filters="sRGB"/></filter>
+<clipPath id="c0"><path d="M 0 0 L 1546 0 L 1546 760 L 0 760 Z" clip-rule="nonzero"/></clipPath>
+<mask id="m1"><g filter="url(#f1)"><g filter="url(#f1)" transform="matrix(11.53125, 0, 0, 11.15625, 18, 38)"><image x="0" y="0" width="64" height="64" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAkklEQVR4nO3QQREAAAiAMPuX1hh7yBJwzD43OkBrgA7QGqADtAboAK0BOkBrgA7QGqADtAboAK0BOkBrgA7QGqADtAboAK0BOkBrgA7QGqADtAboAK0BOkBrgA7QGqADtAboAK0BOkBrgA7QGqADtAboAK0BOkBrgA7QGqADtAboAK0BOkBrgA7QGqADtAboAO0ARtDDsqXe37wAAAAASUVORK5CYII="/></g></g></mask>
+<clipPath id="c1"><path d="M 18 38 L 756 38 L 756 752 L 18 752 Z" clip-rule="nonzero"/></clipPath>
+</defs>
+<g clip-path="url(#c0)">
+<g clip-path="url(#c1)"><g mask="url(#m1)"><g transform="matrix(11.53125, 0, 0, 11.15625, 18, 38)"><image x="0" y="0" width="64" height="64" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAA/0lEQVR4nOXDxW0AAAADseyvvMvMzMzcK/M86SCxZDHgNBeDTnMx5DQXw05zMeI0F6NOczHmNBfjTnMx4TQXk05zMeU0F9NOczHjNBezTnMx5zQX805zseA0F4tOc7HkNBfLTnOx4jQXq05zseY0F+tOc7HhNBebTnOx5TQX205zseM0F7tOc7HnNBf7TnNx4DQXh05zceQ0F8dOc3HiNBenTnNx5jQX505zceE0F5dOc3HlNBfXTnNx4zQXt05zcec0F/dOc/HgNBePTnOB01w8Oc3Fs9NcvDjNxavTXLw5zcW701x8OM3Fp9NcfDnNxbfTXPw4zcWv01z8Oc3/AS4iitHPFULpAAAAAElFTkSuQmCC" preserveAspectRatio="none"/></g></g></g>
+</g>
+</svg>

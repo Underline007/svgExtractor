@@ -1,0 +1,1721 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SVG Extractor</title>
+<style>
+  :root {
+    --bg: #f4f5f8; --panel: #ffffff; --text: #1d2130; --muted: #6b7185; --line: #dfe2ea;
+    --accent: #7c3aed; --accent-soft: #ede5ff; --danger: #c2410c; --ok: #15803d;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg); display: flex; flex-direction: column; }
+  header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0 12px 0 0; }
+  button, .btn { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 6px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+  button:hover:not(:disabled), .btn:hover { border-color: var(--accent); }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  main { flex: 1; display: grid; grid-template-columns: 260px 1fr 380px; min-height: 0; }
+  aside, #results { overflow: auto; background: var(--panel); }
+  aside { border-right: 1px solid var(--line); padding: 14px; }
+  #results { border-left: 1px solid var(--line); padding: 14px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 18px 0 8px; }
+  h2:first-child { margin-top: 0; }
+  label.row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  label.col { display: block; margin: 8px 0; }
+  label.col span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 3px; }
+  input[type=number], select { font: inherit; width: 100%; padding: 4px 6px; border: 1px solid var(--line); border-radius: 5px; }
+  .hint { color: var(--muted); font-size: 12px; }
+  #fileList { list-style: none; padding: 0; margin: 0; }
+  #fileList li { padding: 6px 8px; border-radius: 5px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #fileList li.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  #stage { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+  #drop { position: absolute; inset: 16px; border: 2px dashed #b9bfd0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--muted); text-align: center; padding: 20px; z-index: 3; background: var(--bg); }
+  #drop.over { border-color: var(--accent); color: var(--accent); }
+  #drop.hidden { display: none; }
+  #viewWrap { position: relative; flex: 1; margin: 16px; background: repeating-conic-gradient(#e9ebf1 0% 25%, #fff 0% 50%) 50% / 20px 20px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  #view { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  #overlay { position: absolute; inset: 0; pointer-events: none; }
+  .ob { position: absolute; border: 2px solid var(--accent); pointer-events: auto; cursor: pointer; }
+  .ob.sel { background: rgba(124, 58, 237, .14); border-width: 3px; }
+  .ob.excl { border-style: dashed; border-color: #9aa0b4; }
+  .ob b { position: absolute; left: -2px; top: -22px; background: var(--accent); color: #fff; font-size: 12px; padding: 1px 6px; border-radius: 4px 4px 4px 0; }
+  .ob.excl b { background: #9aa0b4; left: auto; right: -2px; border-radius: 4px 4px 0 4px; }
+  #status { padding: 0 16px 10px; color: var(--muted); font-size: 12px; min-height: 18px; }
+  #status.err { color: var(--danger); }
+  .tools { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .card { border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin-bottom: 10px; display: grid; grid-template-columns: 110px 1fr; gap: 10px; cursor: pointer; }
+  .card.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .card.excl { opacity: .55; }
+  .thumb { width: 110px; height: 110px; display: flex; align-items: center; justify-content: center; background: repeating-conic-gradient(#eef0f4 0% 25%, #fff 0% 50%) 50% / 12px 12px; border-radius: 5px; overflow: hidden; }
+  .thumb img { max-width: 100%; max-height: 100%; }
+  .meta { font-size: 12px; color: var(--muted); min-width: 0; }
+  .meta strong { color: var(--text); font-size: 14px; }
+  .meta .acts { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+  .meta .acts button { padding: 3px 8px; font-size: 12px; }
+  .tag { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 9px; background: #eef0f4; color: var(--muted); margin-left: 4px; }
+  .sz s { opacity: .6; }
+  .sz .gain { color: var(--ok); font-weight: 600; }
+  #summary { font-size: 12px; color: var(--muted); margin: 0 0 10px; min-height: 18px; }
+  #summary b { color: var(--ok); }
+  input[type=range] { width: 100%; }
+  @media (max-width: 1000px) { main { grid-template-columns: 1fr; } aside, #results { border: 0; } #stage { min-height: 70vh; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>SVG Extractor</h1>
+  <label class="btn">Mở file SVG…<input id="pick" type="file" accept=".svg,image/svg+xml" multiple hidden></label>
+  <button id="reanalyze" disabled>Phân tích lại</button>
+  <button id="zipOne" class="primary" disabled>Tải ZIP (file này)</button>
+  <button id="zipAll" disabled>Tải ZIP (tất cả file)</button>
+</header>
+<main>
+  <aside>
+    <h2>File</h2>
+    <ul id="fileList"><li class="hint" style="cursor:default">Chưa có file</li></ul>
+
+    <h2>Tùy chọn tách</h2>
+    <label class="col"><span>Gộp các phần tử chồng lên nhau</span>
+      <select id="optMerge">
+        <option value="auto" selected>Tự động (chỉ gộp mảnh rời vào đối tượng)</option>
+        <option value="always">Luôn gộp mọi thứ chồng lên nhau</option>
+        <option value="never">Không gộp (chỉ theo cấu trúc)</option>
+      </select>
+    </label>
+    <label class="col"><span>Khoảng cách gộp mảnh rời (đơn vị SVG)</span>
+      <input id="optTol" type="number" min="0" step="1" value="0">
+    </label>
+    <label class="row"><input id="optKey" type="checkbox" checked> Gộp phần tử dùng chung khung cắt (clip/mask)</label>
+    <label class="row"><input id="optVec" type="checkbox" checked> Gộp các mảnh vector sát nhau thành một icon</label>
+    <label class="row"><input id="optBg" type="checkbox" checked> Loại trừ nền phủ toàn trang</label>
+    <label class="row"><input id="optPage" type="checkbox" checked> Cắt theo khung trang gốc</label>
+
+    <h2>Tùy chọn xuất</h2>
+    <label class="col"><span>Lề thêm quanh mỗi SVG (đơn vị SVG)</span>
+      <input id="optPad" type="number" min="0" step="1" value="0">
+    </label>
+    <label class="row"><input id="optPrune" type="checkbox" checked> Xóa tài nguyên không dùng (defs)</label>
+    <label class="row"><input id="optRefine" type="checkbox" checked> Đo viền/bóng chính xác theo điểm ảnh</label>
+    <h2>Giảm dung lượng</h2>
+    <label class="col"><span>Mức nén</span>
+      <select id="optPreset">
+        <option value="off">Tắt (giữ nguyên bản gốc)</option>
+        <option value="light">Nhẹ — gần như không đổi chất lượng</option>
+        <option value="balanced" selected>Cân bằng (khuyên dùng)</option>
+        <option value="strong">Mạnh — nhỏ nhất</option>
+        <option value="custom">Tùy chỉnh</option>
+      </select>
+    </label>
+    <label class="col"><span>Định dạng ảnh nhúng</span>
+      <select id="cFormat">
+        <option value="webp">WebP (nhỏ nhất, hỗ trợ trong suốt)</option>
+        <option value="jpeg">JPEG (ảnh trong suốt giữ PNG)</option>
+        <option value="png">PNG (không mất chi tiết)</option>
+      </select>
+    </label>
+    <label class="col"><span>Chất lượng ảnh (WebP/JPEG): <b id="cQv">85</b></span>
+      <input id="cQuality" type="range" min="10" max="100" value="85">
+    </label>
+    <label class="col"><span>Độ phân giải ảnh tối đa (× kích thước hiển thị)</span>
+      <select id="cScale">
+        <option value="0">Giữ nguyên độ phân giải</option>
+        <option value="3">3×</option>
+        <option value="2" selected>2× (màn hình Retina)</option>
+        <option value="1.5">1.5×</option>
+        <option value="1">1× (đúng kích thước hiển thị)</option>
+      </select>
+    </label>
+    <label class="col"><span>Số chữ số thập phân của đường vẽ</span>
+      <input id="cPrec" type="number" min="0" max="6" step="1" value="2">
+    </label>
+    <label class="row"><input id="cClean" type="checkbox" checked> Xóa metadata, chú thích, mã thừa</label>
+    <label class="row"><input id="cDedupe" type="checkbox" checked> Dùng chung ảnh trùng lặp</label>
+    <p class="hint">Nén ảnh làm mất chất lượng rất nhẹ và chỉ áp dụng khi xuất; bản gốc không bị đổi. Chọn “Nhẹ” hoặc PNG nếu cần giữ chất lượng tối đa. File ZIP luôn được nén.</p>
+
+    <p class="hint">Nhấp vào khung trên ảnh hoặc thẻ bên phải để chọn. Chọn nhiều mục rồi bấm <b>Gộp</b>, hoặc chọn một mục rồi bấm <b>Tách nhỏ</b> nếu kết quả tự động chưa đúng ý.</p>
+  </aside>
+
+  <section id="stage">
+    <div id="drop"><div style="font-size:40px">⬇</div><div><b>Kéo thả file SVG vào đây</b><br>hoặc bấm “Mở file SVG…”. Có thể chọn nhiều file.</div></div>
+    <div id="viewWrap"><iframe id="view" title="Xem trước"></iframe><div id="overlay"></div></div>
+    <div id="status"></div>
+  </section>
+
+  <section id="results">
+    <div class="tools">
+      <button id="bMerge" class="primary" disabled>Gộp</button>
+      <button id="bSplit" disabled>Tách nhỏ</button>
+      <button id="bExcl" disabled>Loại trừ / Khôi phục</button>
+      <button id="bAll">Chọn tất cả</button>
+    </div>
+    <div id="summary"></div>
+    <div id="cards"></div>
+  </section>
+</main>
+
+<script>
+"use strict";
+
+/* ===================================================================
+ *  Core: phân tích một SVG lớn thành các SVG con
+ * =================================================================== */
+const SVGX = (() => {
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const CONTAINERS = new Set(["g", "svg", "a", "switch"]);
+  const LEAVES = new Set(["path", "rect", "circle", "ellipse", "line", "polyline", "polygon", "image", "use", "text", "foreignObject"]);
+  const SHAPES = new Set(["path", "rect", "circle", "ellipse", "line", "polyline", "polygon"]);
+  // Phần tử không tự vẽ ra (định nghĩa, metadata, hoạt ảnh) — luôn giữ khi xuất, sẽ dọn sau.
+  const NONVISUAL = new Set(["defs", "style", "title", "desc", "metadata", "clipPath", "mask", "linearGradient", "radialGradient",
+    "pattern", "filter", "marker", "symbol", "font", "font-face", "color-profile", "cursor", "view", "script",
+    "animate", "animateMotion", "animateTransform", "set", "mpath"]);
+  const RESOURCES = new Set(["clipPath", "mask", "linearGradient", "radialGradient", "pattern", "filter", "marker", "symbol", "font", "color-profile", "cursor"]);
+  const URL_RE = /url\(\s*['"]?#([^'")\s]+)['"]?\s*\)/g;
+
+  /* ---------- Hộp bao {x0,y0,x1,y1} ---------- */
+  const Box = {
+    rect: (x, y, w, h) => ({ x0: x, y0: y, x1: x + w, y1: y + h }),
+    union: (a, b) => !a ? b : !b ? a : { x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) },
+    inter(a, b) {
+      if (!a || !b) return null;
+      const r = { x0: Math.max(a.x0, b.x0), y0: Math.max(a.y0, b.y0), x1: Math.min(a.x1, b.x1), y1: Math.min(a.y1, b.y1) };
+      return r.x0 <= r.x1 && r.y0 <= r.y1 ? r : null;
+    },
+    expand: (b, dx, dy = dx) => b && { x0: b.x0 - dx, y0: b.y0 - dy, x1: b.x1 + dx, y1: b.y1 + dy },
+    area: b => b ? (b.x1 - b.x0) * (b.y1 - b.y0) : 0,
+    w: b => b.x1 - b.x0, h: b => b.y1 - b.y0,
+    overlaps: (a, b, t = 0) => a.x0 <= b.x1 + t && b.x0 <= a.x1 + t && a.y0 <= b.y1 + t && b.y0 <= a.y1 + t,
+    transform(b, m) {
+      const pts = [[b.x0, b.y0], [b.x1, b.y0], [b.x0, b.y1], [b.x1, b.y1]].map(([x, y]) => [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]);
+      const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+      return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
+    },
+    key: b => [b.x0, b.y0, b.x1, b.y1].map(v => v.toFixed(2)).join(","),
+  };
+  const axisAligned = m => Math.abs(m.b) < 1e-9 && Math.abs(m.c) < 1e-9;
+  const isNonePaint = p => !p || p === "none" || /rgba\([^)]*,\s*0\)$/.test(p) || p === "transparent";
+  const matStr = m => `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`;
+
+  function parseLength(v) {
+    if (v == null) return null;
+    const m = /^\s*([+-]?[\d.]+(?:e[+-]?\d+)?)\s*([a-z%]*)\s*$/i.exec(v);
+    if (!m) return null;
+    return { value: parseFloat(m[1]), unit: m[2].toLowerCase() };
+  }
+  const UNIT_PX = { "": 1, px: 1, pt: 4 / 3, pc: 16, mm: 96 / 25.4, cm: 96 / 2.54, in: 96 };
+
+  function refId(value) {
+    if (!value) return null;
+    const m = /url\(\s*['"]?#([^'")\s]+)['"]?\s*\)/.exec(value);
+    return m ? m[1] : null;
+  }
+
+  /* ===================================================================
+   *  Session: một file SVG được gắn vào iframe để đo bằng engine trình duyệt
+   * =================================================================== */
+  class Session {
+    constructor(frame, text, opts) {
+      this.frame = frame;
+      this.text = text;
+      this.opts = opts;
+    }
+
+    mount() {
+      const xml = new DOMParser().parseFromString(this.text, "image/svg+xml");
+      const err = xml.getElementsByTagName("parsererror")[0];
+      if (err) throw new Error("File SVG không hợp lệ: " + err.textContent.trim().slice(0, 200));
+      const src = xml.documentElement;
+      if (src.localName !== "svg" || src.namespaceURI !== SVG_NS) throw new Error("Phần tử gốc không phải <svg>.");
+
+      // Loại bỏ mã thực thi — phần mềm chỉ cần hình.
+      for (const s of [...xml.getElementsByTagNameNS(SVG_NS, "script")]) s.remove();
+      for (const el of [src, ...src.getElementsByTagName("*")]) {
+        for (const a of [...el.attributes]) {
+          if (/^on/i.test(a.name) || (/href$/i.test(a.name) && /^\s*javascript:/i.test(a.value))) el.removeAttributeNode(a);
+        }
+      }
+
+      // Kích thước gốc để xuất đúng đơn vị.
+      this.origW = parseLength(src.getAttribute("width"));
+      this.origH = parseLength(src.getAttribute("height"));
+      this.hadViewBox = src.hasAttribute("viewBox");
+
+      const doc = this.frame.contentDocument;
+      doc.open();
+      doc.write('<!doctype html><html><head><style>html,body{margin:0;height:100%;overflow:hidden}' +
+        'body>svg{display:block;width:100%;height:100%}</style></head><body></body></html>');
+      doc.close();
+      this.doc = doc;
+      this.win = this.frame.contentWindow;
+      const live = doc.importNode(src, true);
+      if (!this.hadViewBox) {
+        const w = this.origW && this.origW.unit !== "%" ? this.origW.value * (UNIT_PX[this.origW.unit] || 1) : null;
+        const h = this.origH && this.origH.unit !== "%" ? this.origH.value * (UNIT_PX[this.origH.unit] || 1) : null;
+        if (w && h) live.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      }
+      doc.body.appendChild(live);
+      this.root = live;
+      if (!live.hasAttribute("viewBox")) {
+        const bb = live.getBBox();
+        live.setAttribute("viewBox", `${bb.x} ${bb.y} ${bb.width || 1} ${bb.height || 1}`);
+      }
+      const vb = live.viewBox.baseVal;
+      this.viewport = Box.rect(vb.x, vb.y, vb.width, vb.height);
+
+      // Đánh số mọi phần tử để ánh xạ giữa bản hiển thị và bản xuất.
+      this.byId = new Map();
+      let i = 0;
+      for (const el of [live, ...live.querySelectorAll("*")]) {
+        el.setAttribute("data-sxid", String(i));
+        this.byId.set(String(i), el);
+        i++;
+      }
+    }
+
+    /* ---------- Hình học ---------- */
+    beginMeasure() { this.rootInv = this.root.getScreenCTM().inverse(); }
+    toRoot(el) {
+      const m = el.getScreenCTM();
+      return m ? this.rootInv.multiply(m) : null;
+    }
+    style(el) { return this.win.getComputedStyle(el); }
+    isSvg(el) { return el.namespaceURI === SVG_NS; }
+
+    /** Hộp (trong không gian gốc) của nội dung clipPath/mask áp lên phần tử el. */
+    regionBox(el, ref, kind) {
+      const units = kind === "clip" ? ref.getAttribute("clipPathUnits") : ref.getAttribute("maskContentUnits");
+      let m = this.toRoot(el);
+      if (!m) return null;
+      if (kind === "clip" && ref.transform && ref.transform.baseVal.numberOfItems) {
+        const t = ref.transform.baseVal.consolidate().matrix;
+        m = m.multiply(new DOMMatrix([t.a, t.b, t.c, t.d, t.e, t.f]));
+      }
+      let bb = null;
+      if (units === "objectBoundingBox" || (kind === "mask" && ref.getAttribute("maskUnits") !== "userSpaceOnUse")) {
+        try { bb = el.getBBox(); } catch (e) { return null; }
+      }
+      if (units === "objectBoundingBox") m = m.multiply(new DOMMatrix([bb.width, 0, 0, bb.height, bb.x, bb.y]));
+
+      const g = this.doc.createElementNS(SVG_NS, "g");
+      for (const c of ref.children) {
+        const k = c.cloneNode(true);
+        for (const n of [k, ...k.querySelectorAll("*")]) { n.removeAttribute("id"); n.removeAttribute("data-sxid"); }
+        g.appendChild(k);
+      }
+      g.setAttribute("transform", matStr(m));
+      this.root.appendChild(g);
+      let box = null, exact = false;
+      try {
+        const b = g.getBBox();
+        if (b.width || b.height) box = Box.transform(Box.rect(b.x, b.y, b.width, b.height), m);
+        // Khung cắt là đúng một hình chữ nhật thẳng trục → biên chính xác tuyệt đối.
+        // Mask (Canva dùng để tạo nền trong suốt cho ảnh) được coi là khung của đối tượng.
+        exact = kind === "mask" || (axisAligned(m) && ref.children.length === 1 && this.isRectLike(g.firstElementChild, b));
+      } catch (e) { /* ignore */ }
+      g.remove();
+      if (box && kind === "mask") {
+        // Vùng mask (mặc định -10% / 120% theo hộp đối tượng).
+        const f = (a, d) => { const L = parseLength(ref.getAttribute(a) || d); return L ? (L.unit === "%" ? L.value / 100 : L.value) : 0; };
+        if (ref.getAttribute("maskUnits") === "userSpaceOnUse") {
+          const pct = ["x", "y", "width", "height"].some(a => /%/.test(ref.getAttribute(a) || "%"));
+          if (!pct) box = Box.inter(box, Box.transform(Box.rect(f("x"), f("y"), f("width"), f("height")), this.toRoot(el)));
+        } else if (bb) {
+          const r = Box.rect(bb.x + f("x", "-10%") * bb.width, bb.y + f("y", "-10%") * bb.height, f("width", "120%") * bb.width, f("height", "120%") * bb.height);
+          box = Box.inter(box, Box.transform(r, this.toRoot(el)));
+        }
+      }
+      return box ? { box, exact } : { box: null, exact: true, empty: true };
+    }
+
+    isRectLike(el, b) {
+      if (!el) return false;
+      if (el.localName === "rect") return !(parseFloat(el.getAttribute("rx")) > 0 || parseFloat(el.getAttribute("ry")) > 0);
+      if (el.localName !== "path") return false;
+      const d = el.getAttribute("d") || "";
+      if (/[^MmLlHhVvZz\d\s.,eE+-]/.test(d)) return false;
+      // Tất cả điểm phải nằm trên các góc của hộp bao.
+      const toks = d.match(/[MmLlHhVvZz]|[+-]?(?:\d*\.\d+|\d+\.?)(?:e[+-]?\d+)?/gi) || [];
+      let cmd = "M", x = 0, y = 0, sx = 0, sy = 0, i = 0, pts = [];
+      const num = () => parseFloat(toks[i++]);
+      while (i < toks.length) {
+        if (/[a-z]/i.test(toks[i])) cmd = toks[i++];
+        const rel = cmd === cmd.toLowerCase();
+        switch (cmd.toUpperCase()) {
+          case "M": case "L": { const nx = num(), ny = num(); x = rel ? x + nx : nx; y = rel ? y + ny : ny; if (cmd.toUpperCase() === "M") { sx = x; sy = y; cmd = rel ? "l" : "L"; } break; }
+          case "H": { const n = num(); x = rel ? x + n : n; break; }
+          case "V": { const n = num(); y = rel ? y + n : n; break; }
+          case "Z": x = sx; y = sy; break;
+          default: return false;
+        }
+        if (Number.isNaN(x) || Number.isNaN(y)) return false;
+        pts.push([x, y]);
+      }
+      const e = 1e-6 * Math.max(1, b.width, b.height);
+      const near = (p, q) => Math.abs(p - q) <= e;
+      return pts.every(([px, py]) => (near(px, b.x) || near(px, b.x + b.width)) && (near(py, b.y) || near(py, b.y + b.height)));
+    }
+
+    /**
+     * Áp các thuộc tính của el lên ngữ cảnh (clip, mask, viewport của svg lồng, filter).
+     * Trả về null nếu el không được vẽ.
+     */
+    enter(el, ctx) {
+      const cs = this.style(el);
+      if (cs.display === "none") return null;
+      if (parseFloat(cs.opacity) === 0) return null;
+      let next = ctx;
+      const add = (r, kind) => {
+        if (next === ctx) next = { ...ctx, clips: ctx.clips.slice(), regions: ctx.regions.slice() };
+        if (!r || r.empty) { next.clips.push(null); return; }
+        next.clips.push(r.box);
+        next.regions.push({ box: r.box, kind });
+        if (!r.exact) next.inexactClip = true;
+      };
+      const clipId = refId(cs.clipPath) || refId(el.getAttribute("clip-path"));
+      if (clipId) {
+        const ref = this.doc.getElementById(clipId);
+        if (ref && ref.localName === "clipPath") add(this.regionBox(el, ref, "clip"), "clip");
+      }
+      const maskId = refId(cs.mask) || refId(el.getAttribute("mask"));
+      if (maskId) {
+        const ref = this.doc.getElementById(maskId);
+        if (ref && ref.localName === "mask") add(this.regionBox(el, ref, "mask"), "mask");
+      }
+      if (el.localName === "svg" && el !== this.root && cs.overflow !== "visible" && cs.overflow !== "auto") {
+        const pm = this.toRoot(el.parentElement);
+        if (pm) add({ box: Box.transform(Box.rect(el.x.baseVal.value, el.y.baseVal.value, el.width.baseVal.value, el.height.baseVal.value), pm), exact: axisAligned(pm) }, "viewport");
+      }
+      if (cs.filter && cs.filter !== "none") {
+        if (next === ctx) next = { ...ctx };
+        next.filtered = true;
+      }
+      return next;
+    }
+
+    rootCtx() {
+      return { clips: this.opts.clipToPage ? [this.viewport] : [], regions: [], inexactClip: false, filtered: false };
+    }
+
+    /** Ngữ cảnh tại phần tử el (đã áp mọi tổ tiên, chưa áp chính el). */
+    ctxAt(el) {
+      const chain = [];
+      for (let n = el.parentElement; n && n !== this.root; n = n.parentElement) chain.unshift(n);
+      let ctx = this.rootCtx();
+      for (const n of chain) { ctx = this.enter(n, ctx); if (!ctx) return null; }
+      return ctx;
+    }
+
+    visualChildren(el) {
+      const kids = [...el.children].filter(c => this.isSvg(c) && (CONTAINERS.has(c.localName) || LEAVES.has(c.localName)));
+      return el.localName === "switch" ? kids.slice(0, 1) : kids;
+    }
+
+    /** Đo một phần tử lá. */
+    measureLeaf(el, ctx) {
+      let bb;
+      try { bb = el.getBBox(); } catch (e) { return null; }
+      const M = this.toRoot(el);
+      if (!M) return null;
+      const cs = this.style(el);
+      if (cs.visibility === "hidden" || cs.visibility === "collapse") return null;
+      const kind = el.localName;
+      const scale = Math.sqrt(Math.abs(M.a * M.d - M.b * M.c)) || 1;
+      let geo = Box.transform(Box.rect(bb.x, bb.y, bb.width, bb.height), M);
+      let exact = geo, inexact = false, pad = 0;
+
+      if (SHAPES.has(kind)) {
+        const fillNone = isNonePaint(cs.fill) || parseFloat(cs.fillOpacity) === 0;
+        const sw = parseFloat(cs.strokeWidth) || 0;
+        const strokeNone = isNonePaint(cs.stroke) || parseFloat(cs.strokeOpacity) === 0 || sw === 0;
+        const markers = [cs.markerStart, cs.markerMid, cs.markerEnd].some(v => v && v !== "none");
+        if (fillNone && strokeNone && !markers) return null;
+        if (!strokeNone) {
+          pad = sw / 2 * (cs.vectorEffect === "non-scaling-stroke" ? 1 / Math.sqrt(Math.abs(this.rootInv.a * this.rootInv.d)) || 1 : scale);
+          inexact = true;
+        }
+        if (markers) { inexact = true; pad = Math.max(pad, sw * 3 * scale); }
+        if (fillNone) exact = null;
+        const plainRect = kind === "rect" && !(el.rx.baseVal.value > 0 || el.ry.baseVal.value > 0);
+        if (!axisAligned(M) && !plainRect) { exact = null; inexact = true; }
+      } else if (kind === "text") {
+        exact = null; inexact = true;
+        pad = (parseFloat(cs.fontSize) || 16) * 0.5 * scale;
+      } else if (kind === "use") {
+        const href = el.getAttribute("href") || el.getAttributeNS("http://www.w3.org/1999/xlink", "href") || "";
+        const target = href.startsWith("#") ? this.doc.getElementById(href.slice(1)) : null;
+        if (!this.useIsPlain(target, cs) || !axisAligned(M)) { exact = null; inexact = true; pad = 0.05 * Math.max(Box.w(geo), Box.h(geo)); }
+      }
+      // image, foreignObject: khung hình chữ nhật là chính xác (kể cả khi xoay — lấy hộp bao của 4 góc).
+
+      if (bb.width === 0 && bb.height === 0 && pad === 0) return null;
+      if (ctx.filtered) inexact = true;
+      if (ctx.inexactClip) inexact = true;
+
+      let approx = Box.expand(geo, pad);
+      for (const c of ctx.clips) {
+        approx = Box.inter(approx, c);
+        exact = Box.inter(exact, c);
+        geo = Box.inter(geo, c);
+        if (!approx) return null; // bị cắt hoàn toàn → không nhìn thấy
+      }
+      return { el, exact, approx, geo, inexact };
+    }
+
+    /** <use> trỏ tới nội dung chỉ gồm ảnh / hình tô không viền, không filter, không xoay → getBBox là chính xác. */
+    useIsPlain(target, useStyle) {
+      if (!target) return false;
+      if (!isNonePaint(useStyle.stroke) && parseFloat(useStyle.strokeWidth) > 0) {
+        // viền kế thừa từ <use> chỉ quan trọng nếu bên trong có hình
+        if ([target, ...target.querySelectorAll("*")].some(n => SHAPES.has(n.localName))) return false;
+      }
+      for (const n of [target, ...target.querySelectorAll("*")]) {
+        if (n.localName === "text" || n.localName === "use" || n.localName === "foreignObject") return false;
+        const st = this.style(n);
+        if (st.filter && st.filter !== "none") return false;
+        if (n !== target && n.transform && n.transform.baseVal.numberOfItems) {
+          const t = n.transform.baseVal.consolidate().matrix;
+          if (!axisAligned(t) && n.localName !== "image") return false;
+        }
+        if (SHAPES.has(n.localName)) {
+          const stroke = n.getAttribute("stroke") || st.stroke;
+          if (!isNonePaint(stroke) && stroke !== "inherit" && parseFloat(st.strokeWidth) > 0) return false;
+          if ([st.markerStart, st.markerMid, st.markerEnd].some(v => v && v !== "none")) return false;
+        }
+      }
+      return true;
+    }
+
+    /** Thu thập mọi lá nhìn thấy dưới el (bao gồm el). */
+    collect(el, ctx, out) {
+      const c = this.enter(el, ctx);
+      if (!c) return out;
+      if (LEAVES.has(el.localName)) {
+        const leaf = this.measureLeaf(el, c);
+        if (leaf) out.push(leaf);
+      } else if (CONTAINERS.has(el.localName)) {
+        for (const k of this.visualChildren(el)) this.collect(k, c, out);
+      }
+      return out;
+    }
+
+    /** Một "đơn vị" = một phần tử con trực tiếp ở mức đang tách. */
+    makeUnit(el, ctx) {
+      const leaves = this.collect(el, ctx, []);
+      if (!leaves.length) return null;
+      const u = { el, id: el.getAttribute("data-sxid"), leaves, exact: null, approx: null, inexact: false, key: "" };
+      for (const l of leaves) { u.exact = Box.union(u.exact, l.exact); u.approx = Box.union(u.approx, l.approx); u.inexact ||= l.inexact; }
+
+      // Khóa = các khung clip/mask đặt trên đơn vị và chuỗi con đơn của nó (bỏ qua khung phủ cả trang).
+      const vpA = Box.area(this.viewport);
+      const keys = [];
+      let n = el, nctx = ctx;
+      while (n) {
+        const before = nctx.regions.length;
+        nctx = this.enter(n, nctx);
+        if (!nctx) break;
+        for (const r of nctx.regions.slice(before)) {
+          if (Box.area(Box.inter(r.box, this.viewport)) < 0.95 * vpA) keys.push(r.kind[0] + Box.key(r.box));
+        }
+        const kids = CONTAINERS.has(n.localName) ? this.visualChildren(n) : [];
+        n = kids.length === 1 ? kids[0] : null;
+      }
+      u.key = keys.join("|");
+      u.object = !!u.key || leaves.length > 1 || ["image", "use", "foreignObject", "text", "svg"].includes(el.localName) ||
+        (CONTAINERS.has(el.localName) && leaves.some(l => !SHAPES.has(l.el.localName)));
+      return u;
+    }
+
+    unitsOf(container) {
+      const ctx = container === this.root ? this.rootCtx() : this.enter(container, this.ctxAt(container));
+      if (!ctx) return [];
+      return this.visualChildren(container).map(k => this.makeUnit(k, ctx)).filter(Boolean);
+    }
+
+    isBackground(u) {
+      const vpA = Box.area(this.viewport);
+      return Box.area(Box.inter(u.approx, this.viewport)) >= 0.9 * vpA;
+    }
+
+    /* ---------- Phân cụm ---------- */
+    clusterUnits(units, mode, useKey) {
+      const tol = Math.max(0, +this.opts.tolerance || 0);
+      // 1) Gộp theo khóa khung cắt.
+      const groups = [];
+      const byKey = new Map();
+      for (const u of units) {
+        if (useKey && u.key) {
+          if (!byKey.has(u.key)) { const g = { units: [], object: true }; byKey.set(u.key, g); groups.push(g); }
+          byKey.get(u.key).units.push(u);
+        } else groups.push({ units: [u], object: u.object });
+      }
+      for (const g of groups) g.approx = g.units.reduce((b, u) => Box.union(b, u.approx), null);
+
+      // 2) Union-find theo chồng lấn.
+      const parent = groups.map((_, i) => i);
+      const find = i => parent[i] === i ? i : (parent[i] = find(parent[i]));
+      const join = (a, b) => { a = find(a); b = find(b); if (a !== b) parent[b] = a; };
+      const sweep = (idx) => {
+        idx.sort((a, b) => groups[a].approx.x0 - groups[b].approx.x0);
+        for (let i = 0; i < idx.length; i++) {
+          const A = groups[idx[i]].approx;
+          for (let j = i + 1; j < idx.length; j++) {
+            const B = groups[idx[j]].approx;
+            if (B.x0 > A.x1 + tol) break;
+            if (Box.overlaps(A, B, tol)) join(idx[i], idx[j]);
+          }
+        }
+      };
+      if (mode === "always") {
+        sweep(groups.map((_, i) => i));
+      } else if (mode === "auto") {
+        const frag = groups.map((g, i) => i).filter(i => !groups[i].object);
+        const objs = groups.map((g, i) => i).filter(i => groups[i].object);
+        sweep(frag);
+        // Mỗi cụm mảnh rời gắn vào đúng MỘT đối tượng chồng lấn nhiều nhất (tránh làm cầu nối 2 đối tượng).
+        const fragSets = new Map();
+        for (const i of frag) { const r = find(i); if (!fragSets.has(r)) fragSets.set(r, []); fragSets.get(r).push(i); }
+        for (const [r, members] of fragSets) {
+          const fb = members.reduce((b, i) => Box.union(b, groups[i].approx), null);
+          let best = -1, bestA = -1;
+          for (const o of objs) {
+            const ob = groups[o].approx;
+            if (!Box.overlaps(fb, ob, tol)) continue;
+            const a = Box.area(Box.inter(Box.expand(fb, tol / 2), Box.expand(ob, tol / 2))) || 1e-12;
+            if (a > bestA) { bestA = a; best = o; }
+          }
+          if (best >= 0) join(best, r);
+        }
+      }
+      const out = new Map();
+      groups.forEach((g, i) => { const r = find(i); if (!out.has(r)) out.set(r, []); out.get(r).push(...g.units); });
+      let clusters = [...out.values()].map(us => this.makeCluster(us));
+      if (mode === "auto" && this.opts.vectorJoin) clusters = this.joinVectorPieces(clusters, units, tol);
+      return clusters;
+    }
+
+    /**
+     * Canva không giữ nhóm: một icon vector bị xuất thành nhiều path rời, mỗi path có thể có khung cắt riêng.
+     * Chỉ xét các cụm gồm toàn "mảnh" (đơn vị có đúng một hình vector — nhóm <g> nhiều hình là đối tượng có chủ ý).
+     * Gộp hai cụm mảnh nếu hộp bao chồng lên nhau, hoặc nếu chúng liền nhau trong thứ tự lớp và cụm nhỏ
+     * (đường chéo ≤ SMALL × cụm lớn) nằm cách cụm lớn không quá GAP × đường chéo của chính nó.
+     */
+    joinVectorPieces(clusters, units, tol) {
+      const SMALL = 0.3, GAP = 0.5;
+      const order = new Map(units.map((u, i) => [u, i]));
+      const piece = u => u.leaves.length === 1 && SHAPES.has(u.leaves[0].el.localName);
+      const items = clusters.map(c => ({ c, idx: c.units.map(u => order.get(u)), vector: c.units.every(piece) }));
+      const gap = (a, b) => Math.hypot(Math.max(0, b.x0 - a.x1, a.x0 - b.x1), Math.max(0, b.y0 - a.y1, a.y0 - b.y1));
+      const diag = b => Math.hypot(Box.w(b), Box.h(b));
+      // Không có cụm thứ ba nào nằm xen giữa hai cụm trong thứ tự lớp.
+      const adjacent = (A, B) => {
+        const lo = Math.min(Math.max(...A.idx), Math.max(...B.idx)), hi = Math.max(Math.min(...A.idx), Math.min(...B.idx));
+        return !items.some(o => o !== A && o !== B && o.idx.some(i => i > lo && i < hi));
+      };
+      for (let changed = true; changed;) {
+        changed = false;
+        outer: for (let i = 0; i < items.length; i++) {
+          for (let j = i + 1; j < items.length; j++) {
+            const A = items[i], B = items[j];
+            if (!A.vector || !B.vector || A.c.excluded || B.c.excluded) continue;
+            const a = A.c.approx, b = B.c.approx;
+            const small = Math.min(diag(a), diag(b)), big = Math.max(diag(a), diag(b));
+            if (Box.overlaps(a, b, tol) || (adjacent(A, B) && small <= SMALL * big && gap(a, b) <= GAP * small)) {
+              A.c = this.makeCluster(A.c.units.concat(B.c.units));
+              A.idx = A.idx.concat(B.idx);
+              items.splice(j, 1);
+              changed = true;
+              break outer;
+            }
+          }
+        }
+      }
+      return items.map(it => it.c);
+    }
+
+    makeCluster(units, excluded = false) {
+      const c = { units, excluded, exact: null, approx: null, inexact: false, box: null };
+      for (const u of units) { c.exact = Box.union(c.exact, u.exact); c.approx = Box.union(c.approx, u.approx); c.inexact ||= u.inexact; }
+      c.box = Box.union(c.exact, c.inexact ? c.approx : null) || c.approx;
+      return c;
+    }
+
+    /** Phân tích tự động: đi xuống qua các lớp bọc rồi phân cụm. */
+    analyze(start) {
+      this.beginMeasure();
+      let node = start || this.root;
+      const bg = [];
+      for (let depth = 0; depth < 100; depth++) {
+        let units = this.unitsOf(node);
+        if (this.opts.ignoreBackground && units.length > 1) {
+          const fg = units.filter(u => !this.isBackground(u));
+          if (fg.length && fg.length < units.length) { bg.push(...units.filter(u => this.isBackground(u))); units = fg; }
+        }
+        if (units.length === 1 && CONTAINERS.has(units[0].el.localName) && this.visualChildren(units[0].el).length) {
+          node = units[0].el;
+          continue;
+        }
+        const clusters = this.clusterUnits(units, this.opts.merge, this.opts.useKey);
+        return sortReading(clusters).concat(bg.map(u => this.makeCluster([u], true)));
+      }
+      return [];
+    }
+
+    /** Tách nhỏ một cụm. */
+    split(cluster) {
+      this.beginMeasure();
+      if (cluster.units.length > 1) {
+        let parts = this.clusterUnits(cluster.units, "always", false);
+        if (parts.length < 2) parts = cluster.units.map(u => this.makeCluster([u]));
+        return sortReading(parts);
+      }
+      const el = cluster.units[0].el;
+      if (!CONTAINERS.has(el.localName)) return null;
+      const saved = { ...this.opts };
+      this.opts.ignoreBackground = false;
+      let parts = this.analyze(el);
+      if (parts.length < 2) {
+        // Cấu trúc chỉ có một đối tượng — tách cứng theo từng phần tử con.
+        let node = el, units;
+        while ((units = this.unitsOf(node)).length === 1 && CONTAINERS.has(units[0].el.localName)) node = units[0].el;
+        parts = units.length > 1 ? sortReading(units.map(u => this.makeCluster([u]))) : null;
+      }
+      this.opts = saved;
+      return parts;
+    }
+
+    /** Dựng lại cụm từ danh sách id (khôi phục trạng thái khi mở lại file). */
+    rebuild(defs) {
+      this.beginMeasure();
+      return defs.map(d => {
+        const units = d.ids.map(id => this.byId.get(id)).filter(Boolean).map(el => this.makeUnit(el, this.ctxAt(el) || this.rootCtx())).filter(Boolean);
+        return units.length ? this.makeCluster(units, d.excluded) : null;
+      }).filter(Boolean);
+    }
+
+    merge(clusters) {
+      this.beginMeasure();
+      return this.makeCluster(clusters.flatMap(c => c.units));
+    }
+
+    /* ---------- Xuất ---------- */
+    exportSvg(cluster, box, render) {
+      const keep = new Set(cluster.units.map(u => u.id));
+      const anc = new Set();
+      for (const u of cluster.units) for (let n = u.el.parentElement; n && n !== this.doc.body; n = n.parentElement) anc.add(n.getAttribute("data-sxid"));
+
+      const clone = this.root.cloneNode(true);
+      const sx = n => n.getAttribute && n.getAttribute("data-sxid");
+      const isNonVisual = n => !this.isSvg(n) || NONVISUAL.has(n.localName) || !(CONTAINERS.has(n.localName) || LEAVES.has(n.localName));
+      const all = [clone, ...clone.querySelectorAll("*")];
+      const ids = new Map();
+      for (const el of all) if (el.id) ids.set(el.id, el);
+
+      // Phần tử sẽ còn lại sau khi lọc?
+      const survives = r => {
+        for (let n = r; n && n !== clone; n = n.parentElement) {
+          if (keep.has(sx(n)) || isNonVisual(n)) return true;
+          if (anc.has(sx(n))) return n === r;
+        }
+        return true;
+      };
+
+      // 1) Phần tử hình bị tham chiếu (ví dụ <use href="#x">) nhưng sẽ bị xóa → chuyển vào <defs>.
+      const refsOf = el => {
+        const out = [];
+        for (const a of el.attributes) {
+          if (/(^|:)href$/.test(a.name) && a.value.startsWith("#")) out.push(a.value.slice(1));
+          if (a.value.includes("url(")) for (const m of a.value.matchAll(URL_RE)) out.push(m[1]);
+        }
+        if (el.localName === "style") for (const m of el.textContent.matchAll(URL_RE)) out.push(m[1]);
+        return out;
+      };
+      const referenced = new Set();
+      const work = [];
+      for (const el of all) {
+        const id = sx(el);
+        if (keep.has(id)) { work.push(el, ...el.querySelectorAll("*")); }
+        else if (anc.has(id) || el.localName === "style") work.push(el);
+      }
+      const seen = new Set();
+      while (work.length) {
+        const el = work.pop();
+        if (seen.has(el)) continue;
+        seen.add(el);
+        for (const id of refsOf(el)) {
+          const t = ids.get(id);
+          if (t && !referenced.has(t)) { referenced.add(t); work.push(t, ...t.querySelectorAll("*")); }
+        }
+      }
+      const toMove = [...referenced].filter(r => !survives(r) && ![...referenced].some(o => o !== r && o.contains(r) && !survives(o)));
+      if (toMove.length) {
+        let defs = [...clone.children].find(c => c.localName === "defs");
+        if (!defs) { defs = this.doc.createElementNS(SVG_NS, "defs"); clone.insertBefore(defs, clone.firstChild); }
+        for (const r of toMove) defs.appendChild(r);
+      }
+
+      // 2) Xóa các phần tử hình không thuộc cụm.
+      const prune = el => {
+        for (const k of [...el.children]) {
+          const id = sx(k);
+          if (keep.has(id)) continue;
+          if (anc.has(id)) { prune(k); continue; }
+          if (isNonVisual(k)) continue;
+          k.remove();
+        }
+      };
+      prune(clone);
+
+      // 3) Xóa tài nguyên không còn được dùng.
+      if (this.opts.prune) this.pruneResources(clone, refsOf);
+
+      for (const el of [clone, ...clone.querySelectorAll("[data-sxid]")]) el.removeAttribute("data-sxid");
+      const blank = n => n && n.nodeType === 3 && !n.data.trim();
+      const walker = this.doc.createTreeWalker(clone, NodeFilter.SHOW_TEXT);
+      const texts = [];
+      while (walker.nextNode()) texts.push(walker.currentNode);
+      for (const t of texts) if (blank(t) && blank(t.previousSibling)) t.remove();
+
+      // 4) Khung mới.
+      const fmt = v => +v.toFixed(6);
+      clone.setAttribute("viewBox", [box.x0, box.y0, Box.w(box), Box.h(box)].map(fmt).join(" "));
+      if (render) {
+        clone.setAttribute("width", render.w);
+        clone.setAttribute("height", render.h);
+        clone.setAttribute("preserveAspectRatio", "none");
+      } else {
+        const vb = this.viewport;
+        // Giữ đúng tỉ lệ đơn vị vật lý của file gốc (px, mm, pt…); không có viewBox gốc thì 1 đơn vị = 1px.
+        const dim = (L, size, vbSize) => (L && L.unit !== "%" && this.hadViewBox && vbSize > 0) ? fmt(size * L.value / vbSize) + L.unit : String(fmt(size));
+        clone.setAttribute("width", dim(this.origW, Box.w(box), Box.w(vb)));
+        clone.setAttribute("height", dim(this.origH, Box.h(box), Box.h(vb)));
+      }
+      clone.removeAttribute("x"); clone.removeAttribute("y");
+      return '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' + new XMLSerializer().serializeToString(clone);
+    }
+
+    pruneResources(clone, refsOf) {
+      for (let pass = 0; pass < 2; pass++) {
+        const all = [...clone.querySelectorAll("*")];
+        const isCand = el => this.isSvg(el) && (RESOURCES.has(el.localName) ||
+          (el.parentElement && el.parentElement.localName === "defs" && !["style", "script", "title", "desc", "metadata"].includes(el.localName)));
+        const topCand = el => { let c = null; for (let n = el; n && n !== clone; n = n.parentElement) if (isCand(n)) c = n; return c; };
+        const ids = new Map();
+        for (const el of all) if (el.id) ids.set(el.id, el);
+        const live = new Set();
+        const work = all.filter(el => !topCand(el));
+        work.push(clone);
+        const seen = new Set();
+        while (work.length) {
+          const el = work.pop();
+          if (seen.has(el)) continue;
+          seen.add(el);
+          for (const id of refsOf(el)) {
+            const t = ids.get(id);
+            if (!t) continue;
+            const c = topCand(t);
+            if (c && !live.has(c)) { live.add(c); work.push(c, ...c.querySelectorAll("*")); }
+          }
+        }
+        for (const el of all) if (isCand(el) && el === topCand(el) && !live.has(el) && clone.contains(el)) el.remove();
+        for (const d of clone.querySelectorAll("defs")) if (!d.children.length && !d.textContent.trim()) d.remove();
+      }
+    }
+
+    /**
+     * Đo chính xác theo điểm ảnh cho cụm có nét viền / filter / xoay / chữ.
+     * Kết quả = hợp(khung hình học chắc chắn, vùng điểm ảnh có màu).
+     */
+    async refine(cluster) {
+      if (!cluster.inexact || !this.opts.refine) return cluster.box;
+      const vp = this.opts.clipToPage ? this.viewport : null;
+      const lim = b => vp ? Box.inter(b, vp) : b;
+      const base = cluster.approx;
+      let margin = Math.max(Box.w(base), Box.h(base)) * 0.08 + 1;
+      let ink = null;
+      try {
+        // 1) Ảnh thô: tìm vùng có điểm ảnh; nếu chạm mép vùng vẽ thì nới rộng và vẽ lại.
+        for (let attempt = 0; attempt < 4; attempt++) {
+          const region = lim(Box.expand(base, margin));
+          if (!region) return cluster.box;
+          const rw = Box.w(region), rh = Box.h(region);
+          const k = Math.min(3000 / Math.max(rw, rh), Math.sqrt(9e6 / (rw * rh)));
+          ink = await this.inkBox(cluster, region, Math.max(1, Math.ceil(rw * k)), Math.max(1, Math.ceil(rh * k)));
+          if (!ink) return cluster.exact || cluster.box;
+          if (!this.touchesOpenSide(ink, region)) break;
+          margin *= 3;
+        }
+        // 2) Phóng to sát từng cạnh để đạt độ chính xác dưới điểm ảnh.
+        ink = await this.refineEdges(cluster, ink);
+      } catch (e) {
+        console.warn("refine failed", e);
+        return cluster.box;
+      }
+      const b = Box.union(cluster.exact, ink);
+      return lim(b) || b;
+    }
+
+    /** Vẽ cụm trong vùng region (W×H điểm ảnh), trả về hộp chứa mọi điểm ảnh có alpha > 0. */
+    async inkBox(cluster, region, W, H) {
+      const px = await alphaBounds(this.exportSvg(cluster, region, { w: W, h: H }), W, H);
+      if (!px) return null;
+      const sx = Box.w(region) / W, sy = Box.h(region) / H;
+      return { x0: region.x0 + px.x0 * sx, y0: region.y0 + px.y0 * sy, x1: region.x0 + (px.x1 + 1) * sx, y1: region.y0 + (px.y1 + 1) * sy, px, W, H, sx, sy, region };
+    }
+
+    /** Nội dung chạm mép vùng vẽ (mà mép đó không phải mép trang) → vùng vẽ chưa đủ rộng. */
+    touchesOpenSide(ink, region, sides = ["x0", "y0", "x1", "y1"]) {
+      const vp = this.opts.clipToPage ? this.viewport : null, e = 1e-6;
+      const t = {
+        x0: ink.px.x0 === 0 && !(vp && region.x0 <= vp.x0 + e),
+        y0: ink.px.y0 === 0 && !(vp && region.y0 <= vp.y0 + e),
+        x1: ink.px.x1 === ink.W - 1 && !(vp && region.x1 >= vp.x1 - e),
+        y1: ink.px.y1 === ink.H - 1 && !(vp && region.y1 >= vp.y1 - e),
+      };
+      return sides.some(s => t[s]);
+    }
+
+    async refineEdges(cluster, coarse) {
+      const xs = [], ys = [];
+      for (const u of cluster.units) for (const l of u.leaves) for (const b of [l.geo, l.approx]) if (b) { xs.push(b.x0, b.x1); ys.push(b.y0, b.y1); }
+      const vp = this.opts.clipToPage ? this.viewport : null;
+      if (vp) { xs.push(vp.x0, vp.x1); ys.push(vp.y0, vp.y1); }
+      const snap = (v, list, tol) => {
+        let best = null;
+        for (const c of list) if (Math.abs(c - v) <= tol && (best === null || Math.abs(c - v) < Math.abs(best - v))) best = c;
+        return best;
+      };
+      const { sx, sy } = coarse, N = 256, out = { x0: coarse.x0, y0: coarse.y0, x1: coarse.x1, y1: coarse.y1 };
+      for (const side of ["x0", "x1", "y0", "y1"]) {
+        const horiz = side[0] === "x", s = horiz ? sx : sy, v = coarse[side];
+        let strip = horiz ? { x0: v - 2 * s, x1: v + 2 * s, y0: coarse.y0 - sy, y1: coarse.y1 + sy }
+                          : { x0: coarse.x0 - sx, x1: coarse.x1 + sx, y0: v - 2 * s, y1: v + 2 * s };
+        if (vp) strip = Box.inter(strip, vp);
+        if (!strip) continue;
+        const cross = n => Math.min(2000, Math.max(1, Math.ceil(n)));
+        const W = horiz ? N : cross(Box.w(strip) / sx), H = horiz ? cross(Box.h(strip) / sy) : N;
+        const r = await this.inkBox(cluster, strip, W, H);
+        if (!r || this.touchesOpenSide(r, strip, [side])) continue;
+        const f = horiz ? r.sx : r.sy;
+        // Hít vào biên hình học: phía trong ≤ 1.5 điểm ảnh mịn (khử răng cưa), phía ngoài ≤ 2 điểm ảnh thô
+        // (đỉnh nhọn quá mảnh không hiện thành điểm ảnh; nới ra ngoài thì không bao giờ cắt mất hình).
+        const outward = side[1] === "0" ? -1 : 1;
+        const cands = (horiz ? xs : ys).filter(c => { const d = (c - r[side]) * outward; return d >= -1.5 * f && d <= 2 * s; });
+        const c = snap(r[side], cands, Infinity);
+        // Không khớp biên hình học nào → lùi ra ngoài 1 điểm ảnh mịn cho chắc chắn không cắt mất nét.
+        out[side] = c !== null ? c : r[side] + (side[1] === "0" ? -f : f);
+      }
+      return out;
+    }
+  }
+
+  function sortReading(clusters) {
+    const cs = clusters.slice().sort((a, b) => a.box.y0 - b.box.y0);
+    const rows = [];
+    for (const c of cs) {
+      const row = rows.find(r => {
+        const ov = Math.min(r.y1, c.box.y1) - Math.max(r.y0, c.box.y0);
+        return ov > 0.5 * Math.min(r.y1 - r.y0, Box.h(c.box));
+      });
+      if (row) { row.items.push(c); row.y0 = Math.min(row.y0, c.box.y0); row.y1 = Math.max(row.y1, c.box.y1); }
+      else rows.push({ y0: c.box.y0, y1: c.box.y1, items: [c] });
+    }
+    return rows.flatMap(r => r.items.sort((a, b) => a.box.x0 - b.box.x0));
+  }
+
+  async function alphaBounds(svgText, W, H) {
+    const url = URL.createObjectURL(new Blob([svgText], { type: "image/svg+xml" }));
+    try {
+      const img = new Image();
+      img.decoding = "sync";
+      img.src = url;
+      await img.decode();
+      const cv = document.createElement("canvas");
+      cv.width = W; cv.height = H;
+      const g = cv.getContext("2d", { willReadFrequently: true });
+      g.drawImage(img, 0, 0, W, H);
+      const data = new Uint32Array(g.getImageData(0, 0, W, H).data.buffer);
+      let x0 = W, y0 = H, x1 = -1, y1 = -1;
+      for (let y = 0; y < H; y++) {
+        const row = y * W;
+        let first = -1, last = -1;
+        for (let x = 0; x < W; x++) if (data[row + x] >>> 24) { first = x; break; }
+        if (first < 0) continue;
+        for (let x = W - 1; x >= first; x--) if (data[row + x] >>> 24) { last = x; break; }
+        if (y < y0) y0 = y;
+        y1 = y;
+        if (first < x0) x0 = first;
+        if (last > x1) x1 = last;
+      }
+      return x1 < 0 ? null : { x0, y0, x1, y1 };
+    } finally { URL.revokeObjectURL(url); }
+  }
+
+  return { Session, Box };
+})();
+
+/* ===================================================================
+ *  Giảm dung lượng: nén ảnh nhúng, dùng chung ảnh trùng, làm tròn số, dọn mã thừa
+ * =================================================================== */
+const Optimizer = (() => {
+  const SVG_NS = "http://www.w3.org/2000/svg", XLINK = "http://www.w3.org/1999/xlink";
+  const XML_NS = "http://www.w3.org/XML/1998/namespace", XMLNS_NS = "http://www.w3.org/2000/xmlns/";
+  const NUM = "[+-]?(?:\\d*\\.\\d+|\\d+\\.?)(?:[eE][+-]?\\d+)?";
+  const NUM_G = new RegExp(NUM, "g");
+  const URL_G = /url\(\s*['"]?#([^'")\s]+)['"]?\s*\)/g;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+  // scale = bội số của kích thước hiển thị (0 = giữ nguyên độ phân giải); precision = số chữ số thập phân tại 1 đơn vị = 1px.
+  const PRESETS = {
+    light:    { format: "webp", quality: 95, scale: 3, precision: 3, clean: true, dedupe: true },
+    balanced: { format: "webp", quality: 85, scale: 2, precision: 2, clean: true, dedupe: true },
+    strong:   { format: "webp", quality: 70, scale: 1, precision: 1, clean: true, dedupe: true },
+  };
+
+  /* ---------- Số và path ---------- */
+  function fmt(v, p) {
+    if (!isFinite(v)) return "0";
+    let s = v.toFixed(p);
+    if (s.indexOf(".") >= 0) s = s.replace(/0+$/, "").replace(/\.$/, "");
+    s = s.replace(/^(-?)0\./, "$1.");
+    return s === "-0" || s === "" || s === "-" ? "0" : s;
+  }
+  const nums = (str, p) => (str.match(NUM_G) || []).map(s => fmt(parseFloat(s), p));
+
+  const ARITY = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0 };
+  function parsePath(d) {
+    const re = new RegExp(NUM, "y"), n = d.length, out = [];
+    let i = 0, cmd = null;
+    const skip = () => { while (i < n) { const ch = d.charCodeAt(i); if (ch === 32 || ch === 44 || (ch >= 9 && ch <= 13)) i++; else break; } };
+    const readNum = () => { skip(); re.lastIndex = i; const m = re.exec(d); if (!m) return null; i = re.lastIndex; return parseFloat(m[0]); };
+    const readFlag = () => { skip(); const ch = d[i]; if (ch === "0" || ch === "1") { i++; return +ch; } return null; };
+    for (;;) {
+      skip();
+      if (i >= n) break;
+      const ch = d[i];
+      if (/[A-Za-z]/.test(ch)) {
+        if (!(ch.toUpperCase() in ARITY)) return null;
+        cmd = ch; i++;
+        if (ch === "Z" || ch === "z") { out.push({ c: ch, a: [] }); cmd = null; continue; }
+      } else if (!cmd) return null;
+      const U = cmd.toUpperCase(), args = [];
+      for (let k = 0; k < ARITY[U]; k++) {
+        const v = U === "A" && (k === 3 || k === 4) ? readFlag() : readNum();
+        if (v === null) return null;
+        args.push(v);
+      }
+      out.push({ c: cmd, a: args });
+      if (U === "M") cmd = cmd === "M" ? "L" : "l";   // cặp tọa độ thừa sau M là lineto ngầm định
+    }
+    return out;
+  }
+
+  function writePath(cmds, p) {
+    let s = "", prev = "", last = null, lastFlag = false;
+    for (const { c, a } of cmds) {
+      const U = c.toUpperCase();
+      if (c !== prev || U === "M" || U === "Z") { s += c; last = null; }
+      const pr = c === U ? p : Math.min(6, p + 2);   // lệnh tương đối cộng dồn sai số → giữ thêm chữ số
+      for (let k = 0; k < a.length; k++) {
+        const flag = U === "A" && (k === 3 || k === 4);
+        const t = flag ? String(a[k]) : fmt(a[k], pr);
+        if (last !== null && (flag || lastFlag || !(t[0] === "-" || (t[0] === "." && last.includes("."))))) s += " ";
+        s += t; last = t; lastFlag = flag;
+      }
+      prev = c;
+    }
+    return s;
+  }
+
+  /* ---------- Ảnh nhúng ---------- */
+  const dimsCache = new Map();      // href -> {nw, nh}
+  const resultCache = new Map();    // href -> Map(khóa -> href mới)
+
+  async function loadImage(href) {
+    const img = new Image();
+    img.src = href;
+    await img.decode();
+    return img;
+  }
+  function draw(src, w, h) {
+    const cv = document.createElement("canvas");
+    cv.width = w; cv.height = h;
+    const g = cv.getContext("2d");
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = "high";
+    g.drawImage(src, 0, 0, w, h);
+    return cv;
+  }
+  const toBlob = (cv, type, q) => new Promise(r => cv.toBlob(r, type, q));
+  const blobToUri = blob => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(blob); });
+  function hasAlpha(cv) {
+    const g = cv.getContext("2d"), px = new Uint32Array(g.getImageData(0, 0, cv.width, cv.height).data.buffer);
+    for (let i = 0; i < px.length; i++) if ((px[i] >>> 24) !== 255) return true;
+    return false;
+  }
+
+  async function recompress(href, need, o) {
+    let dims = dimsCache.get(href);
+    if (!dims) { const img = await loadImage(href); dims = { nw: img.naturalWidth, nh: img.naturalHeight }; dimsCache.set(href, dims); }
+    const { nw, nh } = dims;
+    // Chỉ thu nhỏ khi biết chắc kích thước hiển thị; không bao giờ phóng to.
+    const f = need && o.scale > 0 ? Math.min(1, need(nw, nh) * o.scale) : 1;
+    const W = Math.max(1, Math.round(nw * f)), H = Math.max(1, Math.round(nh * f));
+    const key = [W, H, o.format, o.quality].join("|");
+    let per = resultCache.get(href);
+    if (!per) resultCache.set(href, per = new Map());
+    if (!per.has(key)) {
+      per.set(key, (async () => {
+        const img = await loadImage(href);
+        let src = img, sw = nw, sh = nh;
+        // Thu nhỏ từng bước ×½ để giữ chi tiết (không bị răng cưa).
+        while (sw / 2 >= W && sh / 2 >= H) { const w2 = Math.ceil(sw / 2), h2 = Math.ceil(sh / 2); src = draw(src, w2, h2); sw = w2; sh = h2; }
+        const cv = draw(src, W, H);
+        let type = o.format === "png" ? "image/png" : o.format === "jpeg" ? "image/jpeg" : "image/webp";
+        if (type === "image/jpeg" && hasAlpha(cv)) type = "image/png";   // JPEG không có kênh trong suốt
+        let blob = await toBlob(cv, type, o.quality / 100);
+        if (!blob || blob.type !== type) blob = await toBlob(cv, "image/png");   // trình duyệt không mã hóa được định dạng này
+        const out = await blobToUri(blob);
+        return out.length < href.length ? out : href;
+      })());
+    }
+    return per.get(key);
+  }
+
+  /* ---------- Phiên đo trong iframe ẩn ---------- */
+  let _host = null;
+  function host() {
+    if (!_host) {
+      const f = document.createElement("iframe");
+      f.setAttribute("aria-hidden", "true");
+      f.style.cssText = "position:fixed;left:-20000px;top:0;width:3000px;height:3000px;border:0;visibility:hidden;pointer-events:none";
+      document.body.appendChild(f);
+      const d = f.contentDocument;
+      d.open(); d.write("<!doctype html><html><head><style>html,body{margin:0}</style></head><body></body></html>"); d.close();
+      _host = { f, doc: d };
+    }
+    return _host;
+  }
+
+  function buildIndex(root) {
+    const idx = new Map();
+    const add = (id, el) => { if (!idx.has(id)) idx.set(id, []); idx.get(id).push(el); };
+    for (const el of [root, ...root.querySelectorAll("*")]) {
+      for (const a of el.attributes) {
+        const v = a.value;
+        if (v.length > 4000) continue;   // bỏ qua data URI
+        if (/(^|:)href$/.test(a.name) && v.startsWith("#")) add(v.slice(1), el);
+        else if (v.includes("url(")) for (const m of v.matchAll(URL_G)) add(m[1], el);
+      }
+    }
+    return idx;
+  }
+
+  /** Tỉ lệ phóng (điểm ảnh màn hình trên 1 đơn vị người dùng) thực sự áp lên phần tử. */
+  function makeScaler(root, index) {
+    const cache = new Map();
+    const scaleOf = m => m && { x: Math.hypot(m.a, m.b), y: Math.hypot(m.c, m.d) };
+    const ctm = el => { try { const m = el.getScreenCTM(); return m && new DOMMatrix([m.a, m.b, m.c, m.d, m.e, m.f]); } catch (e) { return null; } };
+    const local = (el, stop) => {
+      let m = new DOMMatrix();
+      for (let n = el; n && n !== stop; n = n.parentElement) {
+        if (n.transform && n.transform.baseVal && n.transform.baseVal.numberOfItems) {
+          const t = n.transform.baseVal.consolidate().matrix;
+          m = new DOMMatrix([t.a, t.b, t.c, t.d, t.e, t.f]).multiply(m);
+        }
+      }
+      return m;
+    };
+    const maxScale = (refs, loc) => {
+      let best = null;
+      for (const r of refs) {
+        const c = ctm(r);
+        if (!c) continue;
+        const s = scaleOf(c.multiply(loc));
+        if (!best || Math.max(s.x, s.y) > Math.max(best.x, best.y)) best = s;
+      }
+      return best;
+    };
+    function compute(el) {
+      let host = null, defs = null;
+      for (let n = el.parentElement; n && n !== root; n = n.parentElement) {
+        const t = n.localName;
+        if (t === "mask" || t === "clipPath") { host = n; break; }
+        if (t === "pattern" || t === "marker" || t === "symbol") return null;   // có hệ tọa độ riêng → không đoán
+        if (t === "defs" && !defs) defs = n;
+      }
+      if (!host && !defs) return scaleOf(ctm(el));
+      if (host) {
+        const refs = (index.get(host.id) || []).filter(r => !host.contains(r));
+        return refs.length ? maxScale(refs, local(el, host)) : null;
+      }
+      let top = el;
+      while (top.parentElement && top.parentElement !== defs) top = top.parentElement;
+      const refs = top.id ? (index.get(top.id) || []).filter(r => r.localName === "use") : [];
+      return refs.length ? maxScale(refs, local(el, defs)) : null;
+    }
+    const eff = el => { if (!cache.has(el)) cache.set(el, compute(el)); return cache.get(el); };
+
+    /** Hàm (nw, nh) → số điểm ảnh màn hình trên mỗi điểm ảnh gốc của ảnh; null nếu không chắc. */
+    function imageNeed(el) {
+      const plain = /^\s*[\d.]+(px)?\s*$/, ws = el.getAttribute("width") || "", hs = el.getAttribute("height") || "";
+      if (!plain.test(ws) || !plain.test(hs)) return null;
+      const w = parseFloat(ws), h = parseFloat(hs);
+      if (!(w > 0 && h > 0)) return null;
+      const sc = eff(el);
+      if (!sc) return null;
+      const par = (el.getAttribute("preserveAspectRatio") || "xMidYMid meet").trim().split(/\s+/);
+      const mode = par[0] === "none" ? "none" : (par[1] || "meet"), m = Math.max(sc.x, sc.y);
+      return (nw, nh) => mode === "none" ? Math.max(w / nw * sc.x, h / nh * sc.y)
+        : (mode === "slice" ? Math.max(w / nw, h / nh) : Math.min(w / nw, h / nh)) * m;
+    }
+    return { eff, imageNeed };
+  }
+
+  const hrefAttr = el => el.getAttributeNodeNS(XLINK, "href") || el.getAttributeNode("href");
+
+  async function optimizeImages(root, o, scaler) {
+    for (const el of [...root.querySelectorAll("image")]) {
+      const a = hrefAttr(el);
+      if (!a || !/^data:image\/(png|jpe?g|webp|bmp);base64,/i.test(a.value)) continue;
+      a.value = await recompress(a.value, scaler.imageNeed(el), o);
+    }
+  }
+
+  /** Các <image> giống hệt nhau (ví dụ ảnh và bản sao của nó trong mask) → một <image> trong <defs> + các <use>. */
+  function dedupe(root) {
+    const GEOM = new Set(["x", "y", "width", "height", "preserveAspectRatio"]);
+    const groups = new Map();
+    for (const el of root.querySelectorAll("image")) {
+      const a = hrefAttr(el);
+      if (!a || a.value.length < 2000) continue;
+      const rest = [...el.attributes].filter(x => x !== a);
+      if (rest.some(x => !GEOM.has(x.name))) continue;
+      const sig = a.value + "\0" + rest.map(x => x.name + "=" + x.value).sort().join(",");
+      if (!groups.has(sig)) groups.set(sig, []);
+      groups.get(sig).push(el);
+    }
+    let n = 0;
+    for (const els of groups.values()) {
+      if (els.length < 2) continue;
+      const doc = root.ownerDocument;
+      let defs = [...root.children].find(c => c.localName === "defs");
+      if (!defs) { defs = doc.createElementNS(SVG_NS, "defs"); root.insertBefore(defs, root.firstChild); }
+      const first = els[0], id = "sxi" + (++n);
+      const shared = first.cloneNode(false);
+      shared.setAttribute("id", id);
+      defs.appendChild(shared);
+      const xl = !!first.getAttributeNodeNS(XLINK, "href");
+      for (const el of els) {
+        const u = doc.createElementNS(SVG_NS, "use");
+        if (xl) u.setAttributeNS(XLINK, "xlink:href", "#" + id); else u.setAttribute("href", "#" + id);
+        el.replaceWith(u);
+      }
+    }
+  }
+
+  /** Xóa metadata, phần tử/thuộc tính của phần mềm khác, chú thích và khai báo namespace không dùng. */
+  function clean(root) {
+    for (const el of [...root.querySelectorAll("*")]) {
+      if (el.localName === "metadata" && el.namespaceURI === SVG_NS) el.remove();
+      else if (el.namespaceURI !== SVG_NS && !el.closest("foreignObject")) el.remove();
+    }
+    for (const el of [root, ...root.querySelectorAll("*")]) {
+      if (el.closest("foreignObject") && el !== root) continue;
+      for (const a of [...el.attributes]) {
+        if (/^data-/.test(a.name)) el.removeAttributeNode(a);
+        else if (a.namespaceURI && ![XLINK, XML_NS, XMLNS_NS].includes(a.namespaceURI)) el.removeAttributeNode(a);
+      }
+    }
+    root.removeAttribute("version");
+    root.removeAttribute("zoomAndPan");
+    for (const el of [root, ...root.querySelectorAll("svg, image")]) {
+      if ((el.getAttribute("preserveAspectRatio") || "").trim() === "xMidYMid meet") el.removeAttribute("preserveAspectRatio");
+    }
+    const used = new Set();
+    for (const el of [root, ...root.querySelectorAll("*")]) {
+      if (el.prefix) used.add(el.prefix);
+      for (const a of el.attributes) if (a.prefix && a.prefix !== "xmlns") used.add(a.prefix);
+    }
+    for (const el of [root, ...root.querySelectorAll("*")]) {
+      for (const a of [...el.attributes]) if (a.prefix === "xmlns" && !used.has(a.localName)) el.removeAttributeNode(a);
+    }
+  }
+
+  /** Làm tròn số trong d / points / transform / thông số hình, mức làm tròn tính theo tỉ lệ hiển thị thực của từng phần tử. */
+  function roundNumbers(root, p, scaler) {
+    const OBB = ["clipPathUnits", "maskContentUnits", "patternContentUnits"];
+    const RES = new Set(["clipPath", "mask", "pattern", "marker", "symbol", "filter", "linearGradient", "radialGradient"]);
+    const inObb = el => { for (let n = el; n; n = n.parentElement) if (OBB.some(a => n.getAttribute(a) === "objectBoundingBox")) return true; return false; };
+    const inRes = el => { for (let n = el; n && n !== root; n = n.parentElement) if (RES.has(n.localName)) return true; return false; };
+    const decFor = el => {
+      if (inObb(el)) return 6;   // tọa độ theo tỉ lệ hộp bao (0–1) → không làm tròn
+      const s = scaler.eff(el), k = s ? Math.max(s.x, s.y) : 0;
+      return k > 0 && isFinite(k) ? clamp(p + Math.round(Math.log10(k)), 0, 6) : Math.min(6, p + 2);
+    };
+    const SIMPLE = { rect: ["x", "y", "width", "height", "rx", "ry"], circle: ["cx", "cy", "r"], ellipse: ["cx", "cy", "rx", "ry"], line: ["x1", "y1", "x2", "y2"], image: ["x", "y", "width", "height"] };
+    const plain = /^\s*[+-]?(?:\d*\.\d+|\d+\.?)(?:[eE][+-]?\d+)?\s*$/;
+    for (const el of root.querySelectorAll("*")) {
+      if (el.namespaceURI !== SVG_NS) continue;
+      const t = el.localName;
+      if (t === "path" && el.hasAttribute("d")) {
+        const cmds = parsePath(el.getAttribute("d"));
+        if (cmds) el.setAttribute("d", writePath(cmds, decFor(el)));
+      } else if ((t === "polyline" || t === "polygon") && el.hasAttribute("points")) {
+        const v = nums(el.getAttribute("points"), decFor(el));
+        if (v.length % 2 === 0) el.setAttribute("points", v.join(" "));
+      } else if (SIMPLE[t] && !inRes(el)) {
+        const dec = decFor(el);
+        for (const a of SIMPLE[t]) {
+          const v = el.getAttribute(a);
+          if (v !== null && plain.test(v)) el.setAttribute(a, fmt(parseFloat(v), dec));
+        }
+      }
+      const tr = el.getAttribute("transform");
+      if (tr) el.setAttribute("transform", tr.replace(/([a-zA-Z]+)\s*\(([^)]*)\)/g, (m, n, args) => n + "(" + nums(args, 6).join(" ") + ")"));
+    }
+  }
+
+  /** Xóa giá trị mặc định thừa và khoảng trắng giữa các phần tử. */
+  function strip(root) {
+    const DEF = { "fill-opacity": "1", "stroke-opacity": "1", opacity: "1", "fill-rule": "nonzero", "clip-rule": "nonzero" };
+    if (!root.querySelector("style")) {
+      for (const el of [root, ...root.querySelectorAll("*")]) {
+        if (el.namespaceURI !== SVG_NS) continue;
+        for (const [n, dv] of Object.entries(DEF)) {
+          if (el.getAttribute(n) !== dv) continue;
+          let ok = true;
+          if (n !== "opacity") {
+            for (let a = el.parentElement; a && ok; a = a.parentElement) {
+              const v = a.getAttribute(n);
+              if ((v !== null && v !== dv) || (a.getAttribute("style") || "").includes(n)) ok = false;   // tổ tiên đặt giá trị khác → thuộc tính này đang có tác dụng
+            }
+          }
+          if (ok) el.removeAttribute(n);
+        }
+      }
+    }
+    const TEXTY = new Set(["text", "tspan", "textPath", "style", "script", "foreignObject", "title", "desc"]);
+    const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_COMMENT);
+    const drop = [];
+    while (walker.nextNode()) {
+      const n = walker.currentNode;
+      if (n.nodeType === 8) { drop.push(n); continue; }
+      if (n.data.trim()) continue;
+      let keep = false;
+      for (let e = n.parentElement; e; e = e.parentElement) if (TEXTY.has(e.localName) || e.getAttribute("xml:space") === "preserve") { keep = true; break; }
+      if (!keep) drop.push(n);
+    }
+    for (const n of drop) n.remove();
+  }
+
+  async function run(text, o) {
+    const xml = new DOMParser().parseFromString(text, "image/svg+xml");
+    if (xml.getElementsByTagName("parsererror").length) throw new Error("SVG không hợp lệ");
+    const { doc } = host();
+    const root = doc.importNode(xml.documentElement, true);
+    doc.body.replaceChildren(root);
+    try {
+      const scaler = makeScaler(root, buildIndex(root));
+      await optimizeImages(root, o, scaler);
+      if (o.dedupe) dedupe(root);
+      if (o.precision != null) roundNumbers(root, o.precision, scaler);
+      if (o.clean) { clean(root); strip(root); }
+      return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(root);
+    } finally { doc.body.replaceChildren(); }
+  }
+
+  // Các lần chạy xếp hàng vì dùng chung một iframe đo.
+  let chain = Promise.resolve();
+  function optimize(text, o) {
+    const p = chain.catch(() => {}).then(() => run(text, o));
+    chain = p;
+    return p;
+  }
+
+  return { optimize, PRESETS, _parsePath: parsePath, _writePath: writePath };
+})();
+
+/* ===================================================================
+ *  ZIP tối giản (không nén) — chạy offline, không cần thư viện
+ * =================================================================== */
+const Zip = (() => {
+  const table = new Uint32Array(256).map((_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+  const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = table[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+  async function deflate(data) {
+    const cs = new CompressionStream("deflate-raw"), w = cs.writable.getWriter();
+    w.write(data); w.close();
+    return new Uint8Array(await new Response(cs.readable).arrayBuffer());
+  }
+  return async function build(files) {
+    const enc = new TextEncoder(), parts = [], central = [];
+    let offset = 0;
+    for (const f of files) {
+      const name = enc.encode(f.name), data = typeof f.data === "string" ? enc.encode(f.data) : f.data, crc = crc32(data);
+      let body = data, method = 0;
+      if (typeof CompressionStream === "function" && data.length > 64) {
+        try { const z = await deflate(data); if (z.length < data.length) { body = z; method = 8; } } catch (e) { /* lưu không nén */ }
+      }
+      const h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, method, true);
+      h.setUint32(14, crc, true); h.setUint32(18, body.length, true); h.setUint32(22, data.length, true); h.setUint16(26, name.length, true);
+      parts.push(h.buffer, name, body);
+      const c = new DataView(new ArrayBuffer(46));
+      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(10, method, true);
+      c.setUint32(16, crc, true); c.setUint32(20, body.length, true); c.setUint32(24, data.length, true); c.setUint16(28, name.length, true);
+      c.setUint32(42, offset, true);
+      central.push(c.buffer, name);
+      offset += 30 + name.length + body.length;
+    }
+    const size = central.reduce((s, p) => s + p.byteLength, 0);
+    const e = new DataView(new ArrayBuffer(22));
+    e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+    e.setUint32(12, size, true); e.setUint32(16, offset, true);
+    return new Blob([...parts, ...central, e.buffer], { type: "application/zip" });
+  };
+})();
+
+/* ===================================================================
+ *  Giao diện
+ * =================================================================== */
+const $ = id => document.getElementById(id);
+const frame = $("view");
+const state = { files: [], current: -1, session: null, clusters: [], selected: new Set(), busy: false };
+
+function opts() {
+  return {
+    merge: $("optMerge").value, tolerance: +$("optTol").value || 0, useKey: $("optKey").checked, vectorJoin: $("optVec").checked,
+    ignoreBackground: $("optBg").checked, clipToPage: $("optPage").checked,
+    padding: +$("optPad").value || 0, prune: $("optPrune").checked, refine: $("optRefine").checked,
+  };
+}
+function status(msg, err) { const s = $("status"); s.textContent = msg; s.className = err ? "err" : ""; }
+function baseStatus(msg) { $("status").dataset.base = msg; status(msg); }
+const baseName = n => n.replace(/\.svg$/i, "");
+const fmtSize = n => n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : (n / 1024).toFixed(1) + " KB";
+const r2 = v => Math.round(v * 100) / 100;
+
+function download(blob, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+async function addFiles(list) {
+  for (const f of list) {
+    if (!/\.svg$/i.test(f.name) && f.type !== "image/svg+xml") continue;
+    state.files.push({ name: f.name, text: await f.text(), defs: null });
+  }
+  renderFileList();
+  if (state.files.length && state.current < 0) await openFile(0);
+}
+
+function renderFileList() {
+  const ul = $("fileList");
+  ul.innerHTML = "";
+  state.files.forEach((f, i) => {
+    const li = document.createElement("li");
+    li.textContent = f.name; li.title = f.name;
+    if (i === state.current) li.className = "active";
+    li.onclick = () => !state.busy && i !== state.current && openFile(i);
+    ul.appendChild(li);
+  });
+  $("zipAll").disabled = !state.files.length;
+}
+
+function saveDefs() {
+  const f = state.files[state.current];
+  if (f) f.defs = state.clusters.map(c => ({ ids: c.units.map(u => u.id), excluded: c.excluded }));
+}
+
+/** Gắn file vào iframe và phân tích (hoặc khôi phục chỉnh sửa trước đó). */
+async function loadSession(i, fresh) {
+  const f = state.files[i];
+  const s = new SVGX.Session(frame, f.text, opts());
+  s.mount();
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const clusters = (!fresh && f.defs) ? s.rebuild(f.defs) : s.analyze();
+  for (const c of clusters) c.box = await s.refine(c);
+  return { s, clusters };
+}
+
+async function openFile(i, fresh) {
+  if (state.busy) return;
+  saveDefs();
+  state.busy = true;
+  state.current = i;
+  renderFileList();
+  $("drop").classList.add("hidden");
+  status("Đang phân tích…");
+  try {
+    const { s, clusters } = await loadSession(i, fresh);
+    state.session = s;
+    state.clusters = clusters;
+    state.selected.clear();
+    const n = clusters.filter(c => !c.excluded).length;
+    baseStatus(`Tìm thấy ${n} SVG con` + (clusters.length > n ? ` (+${clusters.length - n} mục bị loại trừ)` : "") + ". Nhấp vào các khung để chọn, rồi Gộp hoặc Tách nhỏ.");
+  } catch (e) {
+    console.error(e);
+    state.session = null; state.clusters = [];
+    status(e.message || String(e), true);
+  }
+  state.busy = false;
+  render();
+}
+
+function clusterSvg(s, c) {
+  const p = s.opts.padding;
+  const key = [SVGX.Box.key(c.box), p, s.opts.prune].join("/");
+  if (c._svgKey !== key) { c._svg = s.exportSvg(c, SVGX.Box.expand(c.box, p)); c._svgKey = key; }
+  return c._svg;
+}
+
+const clamp06 = v => Math.min(6, Math.max(0, Math.round(v) || 0));
+function optOpts() {
+  if ($("optPreset").value === "off") return null;
+  return { format: $("cFormat").value, quality: +$("cQuality").value, scale: +$("cScale").value,
+    precision: clamp06(+$("cPrec").value), clean: $("cClean").checked, dedupe: $("cDedupe").checked };
+}
+
+/** SVG cuối cùng của một cụm (đã giảm dung lượng nếu bật). Kết quả được nhớ theo cụm + tùy chọn. */
+function finalSvg(s, c, o) {
+  const raw = clusterSvg(s, c);
+  if (!o) return Promise.resolve({ text: raw, raw: raw.length });
+  const key = c._svgKey + "|" + JSON.stringify(o);
+  if (c._optKey !== key) {
+    c._optKey = key;
+    c._optDone = false;
+    c._optP = Optimizer.optimize(raw, o).then(text => text, e => { console.warn("optimize failed", e); return raw; })
+      .then(text => { if (c._optKey === key) { c._optText = text; c._optDone = true; } return text; });
+  }
+  return c._optP.then(text => ({ text, raw: raw.length }));
+}
+function cachedFinal(s, c, o) {
+  const raw = clusterSvg(s, c);
+  if (!o) return { text: raw, raw: raw.length };
+  return c._optDone && c._optKey === c._svgKey + "|" + JSON.stringify(o) ? { text: c._optText, raw: raw.length } : null;
+}
+const gainText = (raw, now) => now < raw ? ` <span class="gain">−${Math.round((1 - now / raw) * 100)}%</span>` : "";
+
+let renderToken = 0;
+function render() {
+  renderOverlay();
+  const box = $("cards");
+  for (const img of box.querySelectorAll("img")) URL.revokeObjectURL(img.src);
+  box.innerHTML = "";
+  const s = state.session;
+  $("zipOne").disabled = $("reanalyze").disabled = !s;
+  const o = optOpts(), token = ++renderToken, jobs = [];
+  $("summary").textContent = "";
+  state.clusters.forEach((c, i) => {
+    const card = document.createElement("div");
+    card.className = "card" + (state.selected.has(c) ? " sel" : "") + (c.excluded ? " excl" : "");
+    const leaves = c.units.reduce((n, u) => n + u.leaves.length, 0);
+    card.innerHTML = `<div class="thumb"><img alt=""></div><div class="meta">
+      <strong>#${i + 1}</strong>${c.excluded ? '<span class="tag">loại trừ</span>' : ""}<br>
+      ${r2(SVGX.Box.w(c.box))} × ${r2(SVGX.Box.h(c.box))}<br>
+      ${leaves} phần tử · <span class="sz"></span><br>
+      <span title="viewBox">x ${r2(c.box.x0)}, y ${r2(c.box.y0)}</span>
+      <div class="acts"><button data-a="dl">Tải SVG</button><button data-a="open">Mở</button><button data-a="copy">Copy mã</button></div></div>`;
+    const img = card.querySelector("img"), sz = card.querySelector(".sz");
+    const useOpt = o && !c.excluded ? o : null;
+    const cur = { text: null, blob: null };
+    const setResult = r => {
+      if (img.src) URL.revokeObjectURL(img.src);
+      cur.text = r.text;
+      cur.blob = new Blob([r.text], { type: "image/svg+xml" });
+      img.src = URL.createObjectURL(cur.blob);
+      sz.innerHTML = useOpt ? `<b>${fmtSize(r.text.length)}</b> <s>${fmtSize(r.raw)}</s>${gainText(r.raw, r.text.length)}` : fmtSize(r.text.length);
+      c._final = { raw: r.raw, now: r.text.length };
+    };
+    const hit = cachedFinal(s, c, useOpt);
+    if (hit) setResult(hit);
+    else { sz.textContent = `${fmtSize(clusterSvg(s, c).length)} → đang tối ưu…`; jobs.push({ c, setResult, useOpt }); }
+    card.onclick = async ev => {
+      const a = ev.target.dataset && ev.target.dataset.a;
+      if (!a) return toggleSel(c);
+      if (!cur.text) setResult(await finalSvg(s, c, useOpt));
+      if (a === "dl") download(cur.blob, `${baseName(state.files[state.current].name)}_${i + 1}.svg`);
+      else if (a === "open") window.open(URL.createObjectURL(cur.blob), "_blank");
+      else if (a === "copy") navigator.clipboard.writeText(cur.text).then(() => status(`Đã copy mã SVG #${i + 1}.`));
+    };
+    box.appendChild(card);
+  });
+  updateTools();
+  updateSummary(token, jobs.length);
+  if (!jobs.length) return;
+  (async () => {
+    let left = jobs.length;
+    for (const j of jobs) {
+      if (token !== renderToken) return;
+      const r = await finalSvg(s, j.c, j.useOpt);
+      if (token !== renderToken) return;
+      j.setResult(r);
+      updateSummary(token, --left);
+    }
+  })();
+}
+
+function updateSummary(token, pending) {
+  if (token !== renderToken) return;
+  const el = $("summary");
+  if (!optOpts()) { el.textContent = ""; return; }
+  if (pending) { el.textContent = `Đang tối ưu… còn ${pending} mục`; return; }
+  let raw = 0, now = 0;
+  for (const c of state.clusters) if (!c.excluded && c._final) { raw += c._final.raw; now += c._final.now; }
+  el.innerHTML = raw ? `Tổng ${fmtSize(raw)} → <b>${fmtSize(now)}</b>${gainText(raw, now)}` : "";
+}
+
+function renderOverlay() {
+  const ov = $("overlay");
+  ov.innerHTML = "";
+  const s = state.session;
+  if (!s) return;
+  const m = s.root.getScreenCTM();
+  state.clusters.forEach((c, i) => {
+    const b = SVGX.Box.transform(c.box, m);
+    const d = document.createElement("div");
+    d.className = "ob" + (state.selected.has(c) ? " sel" : "") + (c.excluded ? " excl" : "");
+    Object.assign(d.style, { left: b.x0 + "px", top: b.y0 + "px", width: (b.x1 - b.x0) + "px", height: (b.y1 - b.y0) + "px" });
+    d.innerHTML = `<b>${i + 1}</b>`;
+    d.onclick = () => toggleSel(c);
+    ov.appendChild(d);
+  });
+}
+
+function toggleSel(c) {
+  state.selected.has(c) ? state.selected.delete(c) : state.selected.add(c);
+  render();
+  const n = state.selected.size;
+  status(n ? `Đã chọn ${n} mục` + (n === 1 ? " — chọn thêm mục khác để gộp, hoặc bấm “Tách nhỏ”." : ` — bấm “Gộp ${n} mục đã chọn” để gộp thành một SVG.`) : $("status").dataset.base || "");
+}
+
+function updateTools() {
+  const n = state.selected.size;
+  $("bMerge").disabled = n < 2;
+  $("bMerge").textContent = n >= 2 ? `Gộp ${n} mục đã chọn` : "Gộp";
+  $("bSplit").disabled = n !== 1;
+  $("bExcl").disabled = n < 1;
+}
+
+async function replaceClusters(oldOnes, newOnes) {
+  const s = state.session;
+  for (const c of newOnes) c.box = await s.refine(c);
+  const idx = Math.min(...oldOnes.map(c => state.clusters.indexOf(c)));
+  const rest = state.clusters.filter(c => !oldOnes.includes(c));
+  rest.splice(idx, 0, ...newOnes);
+  state.clusters = rest;
+  state.selected = new Set(newOnes);
+  saveDefs();
+  render();
+}
+
+$("bMerge").onclick = async () => {
+  const sel = state.clusters.filter(c => state.selected.has(c));
+  if (sel.length < 2) return;
+  await replaceClusters(sel, [state.session.merge(sel)]);
+  state.selected.clear();
+  render();
+  status(`Đã gộp ${sel.length} mục thành một SVG.`);
+};
+$("bSplit").onclick = async () => {
+  const [c] = state.selected;
+  const parts = state.session.split(c);
+  if (!parts || parts.length < 2) return status("Mục này là một phần tử đơn, không thể tách nhỏ hơn.", true);
+  await replaceClusters([c], parts);
+  state.selected.clear();
+  render();
+  status(`Đã tách thành ${parts.length} mục.`);
+};
+$("bExcl").onclick = () => {
+  for (const c of state.selected) c.excluded = !c.excluded;
+  saveDefs();
+  render();
+};
+$("bAll").onclick = () => {
+  state.selected = state.selected.size === state.clusters.length ? new Set() : new Set(state.clusters);
+  render();
+};
+$("reanalyze").onclick = () => state.current >= 0 && openFile(state.current, true);
+
+async function zipEntries(s, clusters, prefix, name, o) {
+  const out = [];
+  let i = 0;
+  for (const c of clusters.filter(c => !c.excluded)) {
+    const { text } = await finalSvg(s, c, o);
+    out.push({ name: `${prefix}${baseName(name)}_${++i}.svg`, data: text });
+  }
+  return out;
+}
+$("zipOne").onclick = async () => {
+  if (state.busy) return;
+  state.busy = true;
+  const f = state.files[state.current];
+  try {
+    status("Đang chuẩn bị file ZIP…");
+    const entries = await zipEntries(state.session, state.clusters, "", f.name, optOpts());
+    const blob = await Zip(entries);
+    download(blob, baseName(f.name) + "_tach.zip");
+    status(`Đã tạo ZIP ${fmtSize(blob.size)} gồm ${entries.length} SVG.`);
+  } catch (e) { status(e.message || String(e), true); }
+  state.busy = false;
+};
+$("zipAll").onclick = async () => {
+  if (state.busy) return;
+  saveDefs();
+  state.busy = true;
+  const entries = [], cur = state.current, o = optOpts();
+  try {
+    for (let i = 0; i < state.files.length; i++) {
+      status(`Đang xử lý ${i + 1}/${state.files.length}: ${state.files[i].name}`);
+      const { s, clusters } = await loadSession(i, false);
+      state.files[i].defs = clusters.map(c => ({ ids: c.units.map(u => u.id), excluded: c.excluded }));
+      entries.push(...await zipEntries(s, clusters, baseName(state.files[i].name) + "/", state.files[i].name, o));
+    }
+    const blob = await Zip(entries);
+    download(blob, "svg_tach.zip");
+    status(`Đã tạo ZIP ${fmtSize(blob.size)} gồm ${entries.length} SVG.`);
+  } catch (e) { status(e.message, true); }
+  state.busy = false;
+  state.current = -1;
+  await openFile(cur);
+};
+
+// Mức nén: chọn sẵn thì điền các ô; sửa ô nào thì chuyển sang "Tùy chỉnh".
+function applyPreset(name) {
+  const p = Optimizer.PRESETS[name];
+  if (!p) return;
+  $("cFormat").value = p.format; $("cQuality").value = p.quality; $("cQv").textContent = p.quality;
+  $("cScale").value = String(p.scale); $("cPrec").value = p.precision;
+  $("cClean").checked = p.clean; $("cDedupe").checked = p.dedupe;
+}
+$("optPreset").onchange = () => { applyPreset($("optPreset").value); if (state.session) render(); };
+$("cQuality").oninput = () => { $("cQv").textContent = $("cQuality").value; };
+for (const id of ["cFormat", "cQuality", "cScale", "cPrec", "cClean", "cDedupe"]) {
+  $(id).onchange = () => { $("optPreset").value = "custom"; if (state.session) render(); };
+}
+applyPreset("balanced");
+
+for (const id of ["optMerge", "optTol", "optKey", "optVec", "optBg", "optPage"]) $(id).onchange = () => state.current >= 0 && openFile(state.current, true);
+for (const id of ["optPad", "optPrune", "optRefine"]) $(id).onchange = async () => {
+  if (!state.session) return;
+  Object.assign(state.session.opts, opts());
+  for (const c of state.clusters) { c.box = state.session.makeCluster(c.units).box; c.box = await state.session.refine(c); }
+  render();
+};
+
+$("pick").onchange = e => { addFiles([...e.target.files]); e.target.value = ""; };
+const stage = $("stage");
+stage.addEventListener("dragover", e => { e.preventDefault(); $("drop").classList.add("over"); });
+stage.addEventListener("dragleave", () => $("drop").classList.remove("over"));
+stage.addEventListener("drop", e => { e.preventDefault(); $("drop").classList.remove("over"); addFiles([...e.dataTransfer.files]); });
+new ResizeObserver(() => renderOverlay()).observe($("viewWrap"));
+
+window.SVGX = SVGX; window.Optimizer = Optimizer; window.__state = state; window.__addText = (name, text) => { state.files.push({ name, text, defs: null }); renderFileList(); return openFile(state.files.length - 1); };
+</script>
+</body>
+</html>

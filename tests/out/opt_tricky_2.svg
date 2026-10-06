@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="260 40 120 120" width="120" height="120"><defs><symbol id="star" viewBox="0 0 10 10"><path d="M5 0L6.2 3.8 10 3.8 7 6.2 8 10 5 7.6 2 10 3 6.2 0 3.8 3.8 3.8Z"/></symbol></defs><use xlink:href="#star" x="260" y="40" width="120" height="120" fill="gold"/></svg>
