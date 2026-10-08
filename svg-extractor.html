@@ -12,31 +12,61 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; }
   body { font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg); display: flex; flex-direction: column; }
-  header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-  header h1 { font-size: 16px; margin: 0 12px 0 0; }
-  button, .btn { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 6px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+  header { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0 8px 0 0; display: flex; align-items: center; gap: 6px; }
+  header .sp { flex: 1; }
+  button, .btn { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 6px; padding: 6px 12px; cursor: pointer; white-space: nowrap; display: inline-block; }
   button:hover:not(:disabled), .btn:hover { border-color: var(--accent); }
-  button:disabled { opacity: .45; cursor: default; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  main { flex: 1; display: grid; grid-template-columns: 260px 1fr 380px; min-height: 0; }
+  button:disabled { opacity: .45; cursor: default; pointer-events: none; }
+  button.primary, .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tw { display: inline-block; }
+  main { flex: 1; display: grid; grid-template-columns: 280px 1fr 380px; min-height: 0; }
   aside, #results { overflow: auto; background: var(--panel); }
-  aside { border-right: 1px solid var(--line); padding: 14px; }
-  #results { border-left: 1px solid var(--line); padding: 14px; }
-  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 18px 0 8px; }
-  h2:first-child { margin-top: 0; }
-  label.row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
-  label.col { display: block; margin: 8px 0; }
-  label.col span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 3px; }
-  input[type=number], select { font: inherit; width: 100%; padding: 4px 6px; border: 1px solid var(--line); border-radius: 5px; }
+  aside { border-right: 1px solid var(--line); padding: 12px 14px; }
+  #results { border-left: 1px solid var(--line); padding: 0 14px 14px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 8px; display: flex; align-items: center; gap: 6px; }
+
+  /* Nhóm tùy chọn có thể thu gọn */
+  details.sec { border-top: 1px solid var(--line); padding: 8px 0 4px; }
+  details.sec:first-of-type { border-top: 0; padding-top: 0; }
+  details.sec > summary { list-style: none; cursor: pointer; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; padding: 4px 0; display: flex; align-items: center; gap: 6px; user-select: none; }
+  details.sec > summary::-webkit-details-marker { display: none; }
+  details.sec > summary::before { content: "▸"; font-size: 11px; transition: transform .12s; }
+  details.sec[open] > summary::before { transform: rotate(90deg); }
+  details.sec > .body { padding: 4px 0 8px; }
+  details.adv { margin: 8px 0 0; border: 1px solid var(--line); border-radius: 6px; padding: 0 8px; }
+  details.adv > summary { cursor: pointer; font-size: 13px; padding: 6px 0; color: var(--text); }
+  details.adv[open] { padding-bottom: 6px; }
+
+  .fld { margin: 8px 0; }
+  .fld .lbl { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; margin-bottom: 3px; }
+  .rowt { display: flex; align-items: flex-start; gap: 6px; margin: 6px 0; }
+  .rowt label.row { display: flex; align-items: flex-start; gap: 8px; flex: 1; margin: 0; cursor: pointer; }
+  .rowt label.row input { margin-top: 3px; }
+  input[type=number], select { font: inherit; width: 100%; padding: 4px 6px; border: 1px solid var(--line); border-radius: 5px; background: #fff; }
+  input[type=range] { width: 100%; }
   .hint { color: var(--muted); font-size: 12px; }
-  #fileList { list-style: none; padding: 0; margin: 0; }
-  #fileList li { padding: 6px 8px; border-radius: 5px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Dấu ? giải thích — rê chuột hoặc Tab vào để xem */
+  .q { flex: none; width: 15px; height: 15px; border-radius: 50%; border: 1px solid #b9bfd0; color: var(--muted); font: 600 10px/13px system-ui, sans-serif; text-align: center; cursor: help; font-style: normal; user-select: none; margin-top: 1px; }
+  .q:hover, .q:focus { border-color: var(--accent); color: var(--accent); outline: none; }
+  .t { border-bottom: 1px dotted #9aa0b4; cursor: help; }
+  #tip { position: fixed; z-index: 100; max-width: 300px; background: #1d2130; color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 12px; line-height: 1.5; white-space: pre-line; pointer-events: none; opacity: 0; transition: opacity .1s; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+  #tip.on { opacity: 1; }
+
+  #fileHead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  #fileList { list-style: none; padding: 0; margin: 0 0 12px; max-height: 190px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; }
+  #fileList li { padding: 6px 8px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-bottom: 1px solid #f0f1f5; }
+  #fileList li:last-child { border-bottom: 0; }
+  #fileList li:hover:not(.active) { background: #f7f8fb; }
   #fileList li.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
   #stage { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
   #drop { position: absolute; inset: 16px; border: 2px dashed #b9bfd0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--muted); text-align: center; padding: 20px; z-index: 3; background: var(--bg); }
   #drop.over { border-color: var(--accent); color: var(--accent); }
   #drop.hidden { display: none; }
-  #viewWrap { position: relative; flex: 1; margin: 16px; background: repeating-conic-gradient(#e9ebf1 0% 25%, #fff 0% 50%) 50% / 20px 20px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  #drop ol { text-align: left; margin: 8px 0 0; padding-left: 20px; font-size: 13px; line-height: 1.7; }
+  #viewWrap { position: relative; flex: 1; margin: 16px 16px 8px; background: repeating-conic-gradient(#e9ebf1 0% 25%, #fff 0% 50%) 50% / 20px 20px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
   #view { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   #overlay { position: absolute; inset: 0; pointer-events: none; }
   .ob { position: absolute; border: 2px solid var(--accent); pointer-events: auto; cursor: pointer; }
@@ -44,118 +74,154 @@
   .ob.excl { border-style: dashed; border-color: #9aa0b4; }
   .ob b { position: absolute; left: -2px; top: -22px; background: var(--accent); color: #fff; font-size: 12px; padding: 1px 6px; border-radius: 4px 4px 4px 0; }
   .ob.excl b { background: #9aa0b4; left: auto; right: -2px; border-radius: 4px 4px 0 4px; }
+  #legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 0 16px 6px; font-size: 12px; color: var(--muted); }
+  #legend span { display: inline-flex; align-items: center; gap: 5px; }
+  #legend i { display: inline-block; width: 14px; height: 10px; border: 2px solid var(--accent); border-radius: 2px; }
+  #legend i.sel { background: rgba(124, 58, 237, .25); }
+  #legend i.ex { border-style: dashed; border-color: #9aa0b4; }
   #status { padding: 0 16px 10px; color: var(--muted); font-size: 12px; min-height: 18px; }
   #status.err { color: var(--danger); }
-  .tools { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+
+  .tools { position: sticky; top: 0; z-index: 2; background: var(--panel); padding: 12px 0 8px; display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
   .card { border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin-bottom: 10px; display: grid; grid-template-columns: 110px 1fr; gap: 10px; cursor: pointer; }
+  .card:hover { border-color: #c9b8f5; }
   .card.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
-  .card.excl { opacity: .55; }
+  .card.excl { opacity: .6; }
   .thumb { width: 110px; height: 110px; display: flex; align-items: center; justify-content: center; background: repeating-conic-gradient(#eef0f4 0% 25%, #fff 0% 50%) 50% / 12px 12px; border-radius: 5px; overflow: hidden; }
   .thumb img { max-width: 100%; max-height: 100%; }
   .meta { font-size: 12px; color: var(--muted); min-width: 0; }
   .meta strong { color: var(--text); font-size: 14px; }
   .meta .acts { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
-  .meta .acts button { padding: 3px 8px; font-size: 12px; }
-  .tag { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 9px; background: #eef0f4; color: var(--muted); margin-left: 4px; }
+  .meta .acts button { padding: 3px 8px; font-size: 12px; pointer-events: auto; }
+  .tag { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 9px; background: #eef0f4; color: var(--muted); margin-left: 4px; cursor: help; }
   .sz s { opacity: .6; }
   .sz .gain { color: var(--ok); font-weight: 600; }
   #summary { font-size: 12px; color: var(--muted); margin: 0 0 10px; min-height: 18px; }
   #summary b { color: var(--ok); }
-  input[type=range] { width: 100%; }
+  .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 28px 8px; }
   @media (max-width: 1000px) { main { grid-template-columns: 1fr; } aside, #results { border: 0; } #stage { min-height: 70vh; } }
 </style>
 </head>
 <body>
 <header>
-  <h1>SVG Extractor</h1>
-  <label class="btn">Mở file SVG…<input id="pick" type="file" accept=".svg,image/svg+xml" multiple hidden></label>
-  <button id="reanalyze" disabled>Phân tích lại</button>
-  <button id="zipOne" class="primary" disabled>Tải ZIP (file này)</button>
-  <button id="zipAll" disabled>Tải ZIP (tất cả file)</button>
+  <h1>SVG Extractor <i class="q" tabindex="0" data-tip="Tách một file SVG lớn (ví dụ xuất từ Canva) thành nhiều SVG nhỏ, mỗi đối tượng một file.&#10;1. Mở file SVG (có thể chọn nhiều file).&#10;2. Kiểm tra các khung tím trên ảnh. Nếu chưa đúng ý, bấm khung để chọn rồi dùng Gộp / Tách nhỏ / Loại trừ.&#10;3. Bấm Tải ZIP.">?</i></h1>
+  <label class="btn primary" data-tip="Chọn một hoặc nhiều file .svg. Cũng có thể kéo thả file vào khung xem trước.">Mở file SVG…<input id="pick" type="file" accept=".svg,image/svg+xml" multiple hidden></label>
+  <span class="sp"></span>
+  <span class="tw" data-tip="Chạy lại phần tự động tách cho file đang xem. Các chỉnh sửa Gộp / Tách / Loại trừ của file này sẽ mất."><button id="reanalyze" disabled>Phân tích lại</button></span>
+  <span class="tw" data-tip="Tải một file ZIP gồm các SVG con của file đang xem (không gồm các mục đã loại trừ)."><button id="zipOne" class="primary" disabled>Tải ZIP (file này)</button></span>
+  <span class="tw" data-tip="Xử lý mọi file đã mở và tải một file ZIP duy nhất, mỗi file gốc nằm trong một thư mục riêng."><button id="zipAll" disabled>Tải ZIP (tất cả file)</button></span>
 </header>
 <main>
   <aside>
-    <h2>File</h2>
+    <div id="fileHead"><h2 style="margin:0">File đã mở <span id="fileCount" class="hint"></span></h2></div>
     <ul id="fileList"><li class="hint" style="cursor:default">Chưa có file</li></ul>
 
-    <h2>Tùy chọn tách</h2>
-    <label class="col"><span>Gộp các phần tử chồng lên nhau</span>
-      <select id="optMerge">
-        <option value="auto" selected>Tự động (chỉ gộp mảnh rời vào đối tượng)</option>
-        <option value="always">Luôn gộp mọi thứ chồng lên nhau</option>
-        <option value="never">Không gộp (chỉ theo cấu trúc)</option>
-      </select>
-    </label>
-    <label class="col"><span>Khoảng cách gộp mảnh rời (đơn vị SVG)</span>
-      <input id="optTol" type="number" min="0" step="1" value="0">
-    </label>
-    <label class="row"><input id="optKey" type="checkbox" checked> Gộp phần tử dùng chung khung cắt (clip/mask)</label>
-    <label class="row"><input id="optVec" type="checkbox" checked> Gộp các mảnh vector sát nhau thành một icon</label>
-    <label class="row"><input id="optBg" type="checkbox" checked> Loại trừ nền phủ toàn trang</label>
-    <label class="row"><input id="optPage" type="checkbox" checked> Cắt theo khung trang gốc</label>
+    <details class="sec" open>
+      <summary>Cách tách</summary>
+      <div class="body">
+        <div class="fld">
+          <div class="lbl"><label for="optMerge">Cách gom phần tử</label><i class="q" tabindex="0" data-tip="Quyết định phần tử nào thuộc cùng một SVG con.&#10;• Tự động: chỉ gom các mảnh rời (nét vẽ, chấm nhỏ) vào đối tượng chứa chúng; các đối tượng riêng biệt vẫn tách nhau.&#10;• Gom mọi thứ chồng lên nhau: hai phần tử có khung bao chồng nhau là thành một SVG.&#10;• Không gom: giữ đúng cấu trúc nhóm của file gốc.">?</i></div>
+          <select id="optMerge">
+            <option value="auto" selected>Tự động (khuyên dùng)</option>
+            <option value="always">Gom mọi thứ chồng lên nhau</option>
+            <option value="never">Không gom (theo cấu trúc file)</option>
+          </select>
+        </div>
+        <div class="fld">
+          <div class="lbl"><label for="optTol">Gom mảnh rời cách nhau tối đa</label><i class="q" tabindex="0" data-tip="Hai mảnh nằm gần nhau trong khoảng này sẽ được gom chung.&#10;0 = chỉ gom khi chạm hoặc chồng lên nhau. Tăng lên nếu một hình bị vỡ thành nhiều mảnh nhỏ.&#10;Đơn vị SVG xấp xỉ pixel của file gốc.">?</i></div>
+          <input id="optTol" type="number" min="0" step="1" value="0">
+        </div>
+        <div class="rowt"><label class="row"><input id="optKey" type="checkbox" checked><span>Gom phần tử chung khung cắt</span></label><i class="q" tabindex="0" data-tip="Canva thường cắt ảnh hoặc hình bằng một khung (clip / mask). Các phần tử bị cắt bởi cùng một khung được coi là một đối tượng.">?</i></div>
+        <div class="rowt"><label class="row"><input id="optVec" type="checkbox" checked><span>Gom nét vector sát nhau thành icon</span></label><i class="q" tabindex="0" data-tip="Một icon vẽ bằng nhiều đường (path) rời nhau sẽ được gom thành một SVG: các nét chạm nhau được nối lại, mảnh nhỏ nằm trong hoặc sát hình lớn cũng được gom theo.&#10;Tắt nếu icon đang bị gom quá tay.">?</i></div>
+        <div class="rowt"><label class="row"><input id="optBg" type="checkbox" checked><span>Bỏ qua nền phủ cả trang</span></label><i class="q" tabindex="0" data-tip="Hình hoặc ảnh nền che gần hết trang sẽ được đánh dấu “loại trừ” (không xuất ra) để không dính vào các đối tượng khác. Có thể khôi phục từng mục.">?</i></div>
+        <div class="rowt"><label class="row"><input id="optPage" type="checkbox" checked><span>Cắt theo khung trang gốc</span></label><i class="q" tabindex="0" data-tip="Phần hình nằm ngoài khung trang (viewBox) của file gốc sẽ bị bỏ khi tính kích thước. Tắt nếu muốn lấy cả phần tràn ra ngoài trang.">?</i></div>
+      </div>
+    </details>
 
-    <h2>Tùy chọn xuất</h2>
-    <label class="col"><span>Lề thêm quanh mỗi SVG (đơn vị SVG)</span>
-      <input id="optPad" type="number" min="0" step="1" value="0">
-    </label>
-    <label class="row"><input id="optPrune" type="checkbox" checked> Xóa tài nguyên không dùng (defs)</label>
-    <label class="row"><input id="optRefine" type="checkbox" checked> Đo viền/bóng chính xác theo điểm ảnh</label>
-    <h2>Giảm dung lượng</h2>
-    <label class="col"><span>Mức nén</span>
-      <select id="optPreset">
-        <option value="off">Tắt (giữ nguyên bản gốc)</option>
-        <option value="light">Nhẹ — gần như không đổi chất lượng</option>
-        <option value="balanced" selected>Cân bằng (khuyên dùng)</option>
-        <option value="strong">Mạnh — nhỏ nhất</option>
-        <option value="custom">Tùy chỉnh</option>
-      </select>
-    </label>
-    <label class="col"><span>Định dạng ảnh nhúng</span>
-      <select id="cFormat">
-        <option value="webp">WebP (nhỏ nhất, hỗ trợ trong suốt)</option>
-        <option value="jpeg">JPEG (ảnh trong suốt giữ PNG)</option>
-        <option value="png">PNG (không mất chi tiết)</option>
-      </select>
-    </label>
-    <label class="col"><span>Chất lượng ảnh (WebP/JPEG): <b id="cQv">85</b></span>
-      <input id="cQuality" type="range" min="10" max="100" value="85">
-    </label>
-    <label class="col"><span>Độ phân giải ảnh tối đa (× kích thước hiển thị)</span>
-      <select id="cScale">
-        <option value="0">Giữ nguyên độ phân giải</option>
-        <option value="3">3×</option>
-        <option value="2" selected>2× (màn hình Retina)</option>
-        <option value="1.5">1.5×</option>
-        <option value="1">1× (đúng kích thước hiển thị)</option>
-      </select>
-    </label>
-    <label class="col"><span>Số chữ số thập phân của đường vẽ</span>
-      <input id="cPrec" type="number" min="0" max="6" step="1" value="2">
-    </label>
-    <label class="row"><input id="cClean" type="checkbox" checked> Xóa metadata, chú thích, mã thừa</label>
-    <label class="row"><input id="cDedupe" type="checkbox" checked> Dùng chung ảnh trùng lặp</label>
-    <p class="hint">Nén ảnh làm mất chất lượng rất nhẹ và chỉ áp dụng khi xuất; bản gốc không bị đổi. Chọn “Nhẹ” hoặc PNG nếu cần giữ chất lượng tối đa. File ZIP luôn được nén.</p>
+    <details class="sec" open>
+      <summary>Cách xuất</summary>
+      <div class="body">
+        <div class="fld">
+          <div class="lbl"><label for="optPad">Lề thêm quanh mỗi SVG</label><i class="q" tabindex="0" data-tip="Thêm khoảng trống quanh hình khi xuất, tính theo đơn vị SVG. 0 = cắt sát hình.">?</i></div>
+          <input id="optPad" type="number" min="0" step="1" value="0">
+        </div>
+        <div class="rowt"><label class="row"><input id="optPrune" type="checkbox" checked><span>Xóa tài nguyên không dùng</span></label><i class="q" tabindex="0" data-tip="Mỗi SVG con chỉ giữ phần định nghĩa (defs: màu chuyển, khung cắt, bộ lọc…) mà nó thực sự dùng, nên file nhỏ hơn.">?</i></div>
+        <div class="rowt"><label class="row"><input id="optRefine" type="checkbox" checked><span>Đo viền / bóng chính xác</span></label><i class="q" tabindex="0" data-tip="Vẽ thử để đo chính xác khung cắt khi hình có nét viền, bóng đổ, chữ hoặc bị xoay. Chính xác hơn nhưng phân tích chậm hơn một chút.">?</i></div>
+      </div>
+    </details>
 
-    <p class="hint">Nhấp vào khung trên ảnh hoặc thẻ bên phải để chọn. Chọn nhiều mục rồi bấm <b>Gộp</b>, hoặc chọn một mục rồi bấm <b>Tách nhỏ</b> nếu kết quả tự động chưa đúng ý.</p>
+    <details class="sec" open>
+      <summary>Giảm dung lượng</summary>
+      <div class="body">
+        <div class="fld">
+          <div class="lbl"><label for="optPreset">Mức nén</label><i class="q" tabindex="0" data-tip="Chỉ áp dụng khi tải xuống; file gốc không bị thay đổi.&#10;Đường vẽ (vector) gần như không đổi. Ảnh nhúng bị nén có mất chất lượng rất nhẹ.&#10;Chọn “Tắt” hoặc “Nhẹ” nếu cần giữ chất lượng tối đa.">?</i></div>
+          <select id="optPreset">
+            <option value="off">Tắt (giữ nguyên bản gốc)</option>
+            <option value="light">Nhẹ — gần như không đổi chất lượng</option>
+            <option value="balanced" selected>Cân bằng (khuyên dùng)</option>
+            <option value="strong">Mạnh — nhỏ nhất</option>
+            <option value="custom">Tùy chỉnh</option>
+          </select>
+        </div>
+        <details class="adv">
+          <summary>Cài đặt nâng cao</summary>
+          <div class="fld">
+            <div class="lbl"><label for="cFormat">Định dạng ảnh nhúng</label><i class="q" tabindex="0" data-tip="Định dạng dùng để nén ảnh nằm trong SVG.&#10;• WebP: nhỏ nhất, hỗ trợ nền trong suốt.&#10;• JPEG: ảnh có nền trong suốt vẫn giữ PNG.&#10;• PNG: không mất chi tiết nhưng nặng hơn.">?</i></div>
+            <select id="cFormat">
+              <option value="webp">WebP (nhỏ nhất, hỗ trợ trong suốt)</option>
+              <option value="jpeg">JPEG (ảnh trong suốt giữ PNG)</option>
+              <option value="png">PNG (không mất chi tiết)</option>
+            </select>
+          </div>
+          <div class="fld">
+            <div class="lbl"><label for="cQuality">Chất lượng ảnh: <b id="cQv">85</b></label><i class="q" tabindex="0" data-tip="Chất lượng nén WebP / JPEG (10–100). Cao hơn = đẹp hơn nhưng nặng hơn. Không áp dụng cho PNG.">?</i></div>
+            <input id="cQuality" type="range" min="10" max="100" value="85">
+          </div>
+          <div class="fld">
+            <div class="lbl"><label for="cScale">Độ phân giải ảnh tối đa</label><i class="q" tabindex="0" data-tip="Giới hạn độ phân giải ảnh nhúng theo bội số của kích thước hiển thị trong SVG. 2× phù hợp màn hình Retina; “Giữ nguyên” không thu nhỏ ảnh.">?</i></div>
+            <select id="cScale">
+              <option value="0">Giữ nguyên độ phân giải</option>
+              <option value="3">3×</option>
+              <option value="2" selected>2× (màn hình Retina)</option>
+              <option value="1.5">1.5×</option>
+              <option value="1">1× (đúng kích thước hiển thị)</option>
+            </select>
+          </div>
+          <div class="fld">
+            <div class="lbl"><label for="cPrec">Số chữ số thập phân của đường vẽ</label><i class="q" tabindex="0" data-tip="Số chữ số thập phân khi ghi tọa độ đường vẽ. Ít chữ số = file nhỏ hơn nhưng lệch nhiều hơn (2 chữ số ≈ lệch 0,01 px).">?</i></div>
+            <input id="cPrec" type="number" min="0" max="6" step="1" value="2">
+          </div>
+          <div class="rowt"><label class="row"><input id="cClean" type="checkbox" checked><span>Xóa metadata, chú thích, mã thừa</span></label><i class="q" tabindex="0" data-tip="Xóa thông tin ẩn (metadata), chú thích và thuộc tính thừa không ảnh hưởng đến hình hiển thị.">?</i></div>
+          <div class="rowt"><label class="row"><input id="cDedupe" type="checkbox" checked><span>Dùng chung ảnh trùng lặp</span></label><i class="q" tabindex="0" data-tip="Nếu cùng một ảnh nhúng xuất hiện nhiều lần trong SVG thì chỉ lưu một bản và dùng chung.">?</i></div>
+        </details>
+      </div>
+    </details>
   </aside>
 
   <section id="stage">
-    <div id="drop"><div style="font-size:40px">⬇</div><div><b>Kéo thả file SVG vào đây</b><br>hoặc bấm “Mở file SVG…”. Có thể chọn nhiều file.</div></div>
+    <div id="drop"><div style="font-size:40px">⬇</div><div><b>Kéo thả file SVG vào đây</b><br>hoặc bấm “Mở file SVG…” ở góc trên. Có thể chọn nhiều file.</div>
+      <ol><li>Mở file SVG cần tách</li><li>Kiểm tra các khung tím; bấm khung để chọn, rồi Gộp / Tách nhỏ / Loại trừ nếu cần</li><li>Bấm “Tải ZIP”</li></ol></div>
     <div id="viewWrap"><iframe id="view" title="Xem trước"></iframe><div id="overlay"></div></div>
+    <div id="legend">
+      <span data-tip="Mỗi khung tím là một SVG con sẽ được xuất ra. Số ở góc khung trùng với số thẻ bên phải."><i></i><span class="t">SVG con</span></span>
+      <span data-tip="Mục đang được chọn. Chọn nhiều mục rồi bấm Gộp, hoặc chọn một mục rồi bấm Tách nhỏ."><i class="sel"></i><span class="t">Đang chọn</span></span>
+      <span data-tip="Mục bị loại trừ (thường là nền phủ cả trang) sẽ không được xuất. Chọn nó rồi bấm “Loại trừ / Khôi phục” để đưa lại."><i class="ex"></i><span class="t">Loại trừ</span></span>
+    </div>
     <div id="status"></div>
   </section>
 
   <section id="results">
     <div class="tools">
-      <button id="bMerge" class="primary" disabled>Gộp</button>
-      <button id="bSplit" disabled>Tách nhỏ</button>
-      <button id="bExcl" disabled>Loại trừ / Khôi phục</button>
-      <button id="bAll">Chọn tất cả</button>
+      <span class="tw" data-tip="Chọn từ 2 mục trở lên (bấm vào khung trên ảnh hoặc thẻ bên dưới) rồi bấm để gộp thành một SVG."><button id="bMerge" class="primary" disabled>Gộp</button></span>
+      <span class="tw" data-tip="Chọn đúng 1 mục rồi bấm để chia nó thành các phần nhỏ hơn. Dùng khi tự động đã gom quá tay."><button id="bSplit" disabled>Tách nhỏ</button></span>
+      <span class="tw" data-tip="Bỏ mục đã chọn khỏi kết quả xuất (hoặc đưa mục đã loại trừ trở lại). Mục loại trừ không có trong file ZIP."><button id="bExcl" disabled>Loại trừ / Khôi phục</button></span>
+      <span class="tw" data-tip="Chọn tất cả các mục, bấm lần nữa để bỏ chọn."><button id="bAll">Chọn tất cả</button></span>
     </div>
-    <div id="summary"></div>
+    <div id="summary" data-tip="Tổng dung lượng trước → sau khi giảm (chỉ tính các mục không bị loại trừ)."></div>
     <div id="cards"></div>
   </section>
 </main>
+<div id="tip" role="tooltip"></div>
 
 <script>
 "use strict";
@@ -557,13 +623,14 @@ const SVGX = (() => {
       const parent = groups.map((_, i) => i);
       const find = i => parent[i] === i ? i : (parent[i] = find(parent[i]));
       const join = (a, b) => { a = find(a); b = find(b); if (a !== b) parent[b] = a; };
-      const sweep = (idx) => {
+      const sweep = (idx, inkable) => {
         idx.sort((a, b) => groups[a].approx.x0 - groups[b].approx.x0);
         for (let i = 0; i < idx.length; i++) {
           const A = groups[idx[i]].approx;
           for (let j = i + 1; j < idx.length; j++) {
             const B = groups[idx[j]].approx;
             if (B.x0 > A.x1 + tol) break;
+            if (inkable && inkable[idx[i]] && inkable[idx[j]]) continue;
             if (Box.overlaps(A, B, tol)) join(idx[i], idx[j]);
           }
         }
@@ -571,9 +638,13 @@ const SVGX = (() => {
       if (mode === "always") {
         sweep(groups.map((_, i) => i));
       } else if (mode === "auto") {
-        const frag = groups.map((g, i) => i).filter(i => !groups[i].object);
-        const objs = groups.map((g, i) => i).filter(i => groups[i].object);
-        sweep(frag);
+        // Nét vector (kể cả path có khung cắt riêng của Canva) được nối theo điểm ảnh thật sự chạm nhau,
+        // không theo hộp bao — hộp bao của một nét dài sẽ làm cầu nối cả bức tranh thành một cụm.
+        const inkable = groups.map(g => !!this.opts.vectorJoin && g.units.every(isPiece));
+        const frag = groups.map((g, i) => i).filter(i => !groups[i].object || inkable[i]);
+        const objs = groups.map((g, i) => i).filter(i => groups[i].object && !inkable[i]);
+        sweep(frag, inkable);
+        this.inkJoin(groups, frag.filter(i => inkable[i]), join, tol);
         // Mỗi cụm mảnh rời gắn vào đúng MỘT đối tượng chồng lấn nhiều nhất (tránh làm cầu nối 2 đối tượng).
         const fragSets = new Map();
         for (const i of frag) { const r = find(i); if (!fragSets.has(r)) fragSets.set(r, []); fragSets.get(r).push(i); }
@@ -603,10 +674,9 @@ const SVGX = (() => {
      * (đường chéo ≤ SMALL × cụm lớn) nằm cách cụm lớn không quá GAP × đường chéo của chính nó.
      */
     joinVectorPieces(clusters, units, tol) {
-      const SMALL = 0.3, GAP = 0.5;
+      const SMALL = 0.3, GAP = 0.5, SPECK = 0.05, NEAR = 0.1;
       const order = new Map(units.map((u, i) => [u, i]));
-      const piece = u => u.leaves.length === 1 && SHAPES.has(u.leaves[0].el.localName);
-      const items = clusters.map(c => ({ c, idx: c.units.map(u => order.get(u)), vector: c.units.every(piece) }));
+      const items = clusters.map(c => ({ c, idx: c.units.map(u => order.get(u)), vector: c.units.every(isPiece) }));
       const gap = (a, b) => Math.hypot(Math.max(0, b.x0 - a.x1, a.x0 - b.x1), Math.max(0, b.y0 - a.y1, a.y0 - b.y1));
       const diag = b => Math.hypot(Box.w(b), Box.h(b));
       // Không có cụm thứ ba nào nằm xen giữa hai cụm trong thứ tự lớp.
@@ -614,25 +684,92 @@ const SVGX = (() => {
         const lo = Math.min(Math.max(...A.idx), Math.max(...B.idx)), hi = Math.max(Math.min(...A.idx), Math.min(...B.idx));
         return !items.some(o => o !== A && o !== B && o.idx.some(i => i > lo && i < hi));
       };
-      for (let changed = true; changed;) {
-        changed = false;
-        outer: for (let i = 0; i < items.length; i++) {
+      const inside = (a, b) => a.x0 >= b.x0 && a.y0 >= b.y0 && a.x1 <= b.x1 && a.y1 <= b.y1;
+      // Chọn cặp gần nhất thỏa một trong ba luật: (1) nằm gọn trong hộp bao của cụm lớn; (2) liền kề trong thứ tự lớp;
+      // (3) mảnh li ti (tia lấp lánh, bong bóng) nằm sát cụm lớn.
+      for (;;) {
+        let best = null;
+        for (let i = 0; i < items.length; i++) {
           for (let j = i + 1; j < items.length; j++) {
             const A = items[i], B = items[j];
             if (!A.vector || !B.vector || A.c.excluded || B.c.excluded) continue;
             const a = A.c.approx, b = B.c.approx;
-            const small = Math.min(diag(a), diag(b)), big = Math.max(diag(a), diag(b));
-            if (Box.overlaps(a, b, tol) || (adjacent(A, B) && small <= SMALL * big && gap(a, b) <= GAP * small)) {
-              A.c = this.makeCluster(A.c.units.concat(B.c.units));
-              A.idx = A.idx.concat(B.idx);
-              items.splice(j, 1);
-              changed = true;
-              break outer;
-            }
+            const [sm, bg] = diag(a) <= diag(b) ? [a, b] : [b, a];
+            const small = diag(sm), big = diag(bg), g = gap(a, b);
+            const ok = inside(sm, bg) || (small <= SMALL * big && adjacent(A, B) && g <= GAP * small) ||
+              (small <= SPECK * big && g <= NEAR * big);
+            if (ok && (!best || g < best.g)) best = { i, j, g };
           }
         }
+        if (!best) break;
+        const A = items[best.i], B = items[best.j];
+        A.c = this.makeCluster(A.c.units.concat(B.c.units));
+        A.idx = A.idx.concat(B.idx);
+        items.splice(best.j, 1);
       }
       return items.map(it => it.c);
+    }
+
+    /** Vẽ các nhóm vector lên một lưới điểm ảnh; hai nhóm có điểm ảnh chạm nhau (trong bán kính tol) thì nối lại. */
+    inkJoin(groups, idx, join, tol) {
+      if (idx.length < 2) return;
+      const vp = this.opts.clipToPage ? this.viewport : null;
+      let D = idx.reduce((b, i) => Box.union(b, groups[i].approx), null);
+      if (vp) D = Box.inter(D, vp);
+      if (!D) return;
+      const s = Math.min(2, 2000 / Math.max(Box.w(D), Box.h(D), 1));
+      const W = Math.max(1, Math.ceil(Box.w(D) * s)), H = Math.max(1, Math.ceil(Box.h(D) * s));
+      const R = Math.ceil(tol * s) + 1;
+      const own = new Int32Array(W * H).fill(-1);
+      const cv = document.createElement("canvas");
+      cv.width = W; cv.height = H;
+      const g = cv.getContext("2d", { willReadFrequently: true });
+      const clamp = (v, hi) => Math.max(0, Math.min(hi, v));
+      for (const gi of idx) {
+        const gb = Box.inter(groups[gi].approx, D);
+        if (!gb) continue;
+        const x0 = clamp(Math.floor((gb.x0 - D.x0) * s) - 1, W), x1 = clamp(Math.ceil((gb.x1 - D.x0) * s) + 1, W);
+        const y0 = clamp(Math.floor((gb.y0 - D.y0) * s) - 1, H), y1 = clamp(Math.ceil((gb.y1 - D.y0) * s) + 1, H);
+        const w = x1 - x0, h = y1 - y0;
+        if (w <= 0 || h <= 0) continue;
+        for (const u of groups[gi].units) for (const l of u.leaves) this.drawLeafInk(g, l, D, s);
+        const data = g.getImageData(x0, y0, w, h).data;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            if (!data[(y * w + x) * 4 + 3]) continue;
+            const gx = x0 + x, gy = y0 + y;
+            for (let ny = Math.max(0, gy - R); ny <= Math.min(H - 1, gy + R); ny++) {
+              for (let nx = Math.max(0, gx - R); nx <= Math.min(W - 1, gx + R); nx++) {
+                const o = own[ny * W + nx];
+                if (o >= 0 && o !== gi) join(o, gi);
+              }
+            }
+            if (own[gy * W + gx] < 0) own[gy * W + gx] = gi;
+          }
+        }
+        g.clearRect(x0, y0, w, h);
+      }
+    }
+
+    drawLeafInk(g, leaf, D, s) {
+      const a = leaf.approx;
+      g.save();
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.beginPath();
+      g.rect((a.x0 - D.x0) * s, (a.y0 - D.y0) * s, Box.w(a) * s, Box.h(a) * s);
+      g.clip();
+      const el = leaf.el, M = this.toRoot(el);
+      if (el.localName === "path" && M) {
+        const cs = this.style(el);
+        const path = new Path2D(el.getAttribute("d") || "");
+        g.setTransform(s * M.a, s * M.b, s * M.c, s * M.d, s * (M.e - D.x0), s * (M.f - D.y0));
+        if (!isNonePaint(cs.fill) && parseFloat(cs.fillOpacity) !== 0) g.fill(path, cs.fillRule === "evenodd" ? "evenodd" : "nonzero");
+        const sw = parseFloat(cs.strokeWidth) || 0;
+        if (!isNonePaint(cs.stroke) && parseFloat(cs.strokeOpacity) !== 0 && sw > 0) { g.lineWidth = sw; g.stroke(path); }
+      } else {
+        g.fillRect((a.x0 - D.x0) * s, (a.y0 - D.y0) * s, Box.w(a) * s, Box.h(a) * s);
+      }
+      g.restore();
     }
 
     makeCluster(units, excluded = false) {
@@ -910,6 +1047,8 @@ const SVGX = (() => {
       return out;
     }
   }
+
+  const isPiece = u => u.leaves.length === 1 && SHAPES.has(u.leaves[0].el.localName);
 
   function sortReading(clusters) {
     const cs = clusters.slice().sort((a, b) => a.box.y0 - b.box.y0);
@@ -1417,6 +1556,8 @@ async function addFiles(list) {
 function renderFileList() {
   const ul = $("fileList");
   ul.innerHTML = "";
+  $("fileCount").textContent = state.files.length ? `(${state.files.length})` : "";
+  if (!state.files.length) ul.innerHTML = '<li class="hint" style="cursor:default">Chưa có file</li>';
   state.files.forEach((f, i) => {
     const li = document.createElement("li");
     li.textContent = f.name; li.title = f.name;
@@ -1503,6 +1644,7 @@ const gainText = (raw, now) => now < raw ? ` <span class="gain">−${Math.round(
 
 let renderToken = 0;
 function render() {
+  if (typeof hideTip === "function") hideTip();
   renderOverlay();
   const box = $("cards");
   for (const img of box.querySelectorAll("img")) URL.revokeObjectURL(img.src);
@@ -1516,11 +1658,11 @@ function render() {
     card.className = "card" + (state.selected.has(c) ? " sel" : "") + (c.excluded ? " excl" : "");
     const leaves = c.units.reduce((n, u) => n + u.leaves.length, 0);
     card.innerHTML = `<div class="thumb"><img alt=""></div><div class="meta">
-      <strong>#${i + 1}</strong>${c.excluded ? '<span class="tag">loại trừ</span>' : ""}<br>
-      ${r2(SVGX.Box.w(c.box))} × ${r2(SVGX.Box.h(c.box))}<br>
-      ${leaves} phần tử · <span class="sz"></span><br>
-      <span title="viewBox">x ${r2(c.box.x0)}, y ${r2(c.box.y0)}</span>
-      <div class="acts"><button data-a="dl">Tải SVG</button><button data-a="open">Mở</button><button data-a="copy">Copy mã</button></div></div>`;
+      <strong data-tip="Số thứ tự, trùng với số ở góc khung trên ảnh.">#${i + 1}</strong>${c.excluded ? '<span class="tag" data-tip="Mục này sẽ không được xuất ra ZIP (thường là nền phủ cả trang). Chọn thẻ rồi bấm “Loại trừ / Khôi phục” để đưa lại.">loại trừ</span>' : ""}<br>
+      <span class="t" data-tip="Kích thước SVG con (rộng × cao), tính theo đơn vị của file gốc.">${r2(SVGX.Box.w(c.box))} × ${r2(SVGX.Box.h(c.box))}</span><br>
+      <span class="t" data-tip="Số hình riêng lẻ (đường vẽ, ảnh, chữ…) nằm trong SVG con này.">${leaves} phần tử</span> · <span class="sz t" data-tip="Dung lượng file SVG con. Khi bật giảm dung lượng: số đậm là sau khi giảm, số gạch ngang là trước khi giảm."></span><br>
+      <span class="t" data-tip="Vị trí góc trên-trái của SVG con trong file gốc (x = ngang, y = dọc).">x ${r2(c.box.x0)}, y ${r2(c.box.y0)}</span>
+      <div class="acts"><button data-a="dl" data-tip="Tải riêng SVG này về máy.">Tải SVG</button><button data-a="open" data-tip="Mở SVG này trong tab mới để xem.">Mở</button><button data-a="copy" data-tip="Sao chép mã SVG vào clipboard để dán vào nơi khác.">Copy mã</button></div></div>`;
     const img = card.querySelector("img"), sz = card.querySelector(".sz");
     const useOpt = o && !c.excluded ? o : null;
     const cur = { text: null, blob: null };
@@ -1545,6 +1687,12 @@ function render() {
     };
     box.appendChild(card);
   });
+  if (!state.clusters.length) {
+    const e = document.createElement("div");
+    e.className = "empty";
+    e.textContent = s ? "Không tìm thấy đối tượng nào trong file này." : "Chưa có kết quả. Mở một file SVG để bắt đầu.";
+    box.appendChild(e);
+  }
   updateTools();
   updateSummary(token, jobs.length);
   if (!jobs.length) return;
@@ -1708,12 +1856,34 @@ for (const id of ["optPad", "optPrune", "optRefine"]) $(id).onchange = async () 
   render();
 };
 
+// Tooltip dùng chung cho mọi phần tử có data-tip (kể cả thẻ kết quả được vẽ lại liên tục).
+const tipEl = $("tip");
+let tipTarget = null;
+function hideTip() { tipTarget = null; tipEl.classList.remove("on"); }
+function showTip(t) {
+  tipTarget = t;
+  tipEl.textContent = t.dataset.tip;
+  const r = t.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+  const x = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2));
+  const y = r.bottom + 8 + h > innerHeight - 8 ? Math.max(8, r.top - h - 8) : r.bottom + 8;
+  tipEl.style.left = x + "px"; tipEl.style.top = y + "px";
+  tipEl.classList.add("on");
+}
+const tipOf = e => e.target.closest && e.target.closest("[data-tip]");
+document.addEventListener("mouseover", e => { const t = tipOf(e); if (t !== tipTarget) t ? showTip(t) : hideTip(); });
+document.addEventListener("focusin", e => { const t = tipOf(e); if (t) showTip(t); });
+document.addEventListener("focusout", hideTip);
+document.addEventListener("scroll", hideTip, true);
+document.addEventListener("mousedown", hideTip);
+
 $("pick").onchange = e => { addFiles([...e.target.files]); e.target.value = ""; };
 const stage = $("stage");
 stage.addEventListener("dragover", e => { e.preventDefault(); $("drop").classList.add("over"); });
 stage.addEventListener("dragleave", () => $("drop").classList.remove("over"));
 stage.addEventListener("drop", e => { e.preventDefault(); $("drop").classList.remove("over"); addFiles([...e.dataTransfer.files]); });
 new ResizeObserver(() => renderOverlay()).observe($("viewWrap"));
+
+render();
 
 window.SVGX = SVGX; window.Optimizer = Optimizer; window.__state = state; window.__addText = (name, text) => { state.files.push({ name, text, defs: null }); renderFileList(); return openFile(state.files.length - 1); };
 </script>
